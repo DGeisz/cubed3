@@ -1,0 +1,1 @@
+cp ../target/idl/cubed.json src/global_idl/idl.json
