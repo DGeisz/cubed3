@@ -66,7 +66,7 @@ export const LandingStyles = {
         "shadow-md",
         "cursor-pointer",
         "select-none",
-        "text-3xl"
+        "!text-md"
     ),
     CenteringContainer: clsx("flex flex-col justify-center items-center"),
     ContentContainer: clsx(
