@@ -8,9 +8,10 @@ import {
     MASTER_SEED,
     MINT_SEED_PREFIX,
 } from "./chain_constants";
-import { Cubed } from "../../../target/types/cubed";
+// import { Cubed } from "../../../target/types/cubed";
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import BN from "bn.js";
+import { Cubed } from "../global_types/cubed";
 
 let master_pda: PublicKey;
 let master_bump;

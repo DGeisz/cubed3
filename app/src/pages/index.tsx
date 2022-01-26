@@ -23,7 +23,7 @@ import { priceEmaLamportsToCurrentSol } from "../global_chain/chain_utils";
 import { cubeSideLength } from "../global_constants/cube_dimensions";
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 
-const BUY_CANVAS_LIVE = true;
+const BUY_CANVAS_LIVE = false;
 
 const Landing: NextPage = () => {
     const { provider, program } = useProvider();
