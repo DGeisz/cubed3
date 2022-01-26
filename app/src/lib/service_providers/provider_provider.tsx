@@ -4,7 +4,7 @@ import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { ConfirmOptions, PublicKey } from "@solana/web3.js";
 import { Wallet } from "@project-serum/anchor/dist/cjs/provider";
 import idl from "../../global_idl/idl.json";
-import { Cubed } from "../../../../target/types/cubed";
+import { Cubed } from "../../global_types/cubed";
 
 const programID = new PublicKey(idl.metadata.address);
 
