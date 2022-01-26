@@ -6,7 +6,8 @@
         "build": "next build",
         "start": "next start",
         "lint": "next lint",
-        "idl": "cp ../target/idl/cubed.json src/global_idl/idl.json"
+        "idl": "cp ../target/idl/cubed.json src/global_idl/idl.json",
+        "types": "cp ../target/types/cubed.ts src/global_types/cubed.ts "
     },
     "prettier": {
         "tabWidth": 4
