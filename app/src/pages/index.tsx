@@ -22,8 +22,13 @@ import { LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js";
 import { priceEmaLamportsToCurrentSol } from "../global_chain/chain_utils";
 import { cubeSideLength } from "../global_constants/cube_dimensions";
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
+import Modal from "../global_building_blocks/modal/model";
+import Image from "next/image";
+
+const DEV = false;
 
 const BUY_CANVAS_LIVE = false;
+const pfpSideLen = 260;
 
 const Landing: NextPage = () => {
     const { provider, program } = useProvider();
@@ -59,23 +64,28 @@ const Landing: NextPage = () => {
         };
 
         fetchPrice();
-        const interval = setInterval(fetchPrice, 5000);
 
-        return () => clearInterval(interval);
+        if (BUY_CANVAS_LIVE) {
+            const interval = setInterval(fetchPrice, 5000);
+
+            return () => clearInterval(interval);
+        }
     }, [provider, program]);
 
     async function init() {
-        await initializeCubed(provider, program);
-        const canvases = await program.account.cubedCanvas.all();
-        const { master_pda } = await getDefaultAddresses(program);
-        const master = await provider.connection.getAccountInfo(master_pda);
+        if (DEV) {
+            await initializeCubed(provider, program);
+            const canvases = await program.account.cubedCanvas.all();
+            const { master_pda } = await getDefaultAddresses(program);
+            const master = await provider.connection.getAccountInfo(master_pda);
 
-        console.log("canvases", canvases);
-        if (master) {
-            console.log(
-                "master.lamports / LAMPORTS_PER_SOL",
-                master.lamports / LAMPORTS_PER_SOL
-            );
+            console.log("canvases", canvases);
+            if (master) {
+                console.log(
+                    "master.lamports / LAMPORTS_PER_SOL",
+                    master.lamports / LAMPORTS_PER_SOL
+                );
+            }
         }
     }
 
@@ -111,9 +121,9 @@ const Landing: NextPage = () => {
                                             "bg-gradient-to-tr",
                                             pinkToPurple,
                                             "mx-auto",
-                                            "cursor-pointer"
+                                            DEV && "cursor-pointer"
                                         )}
-                                        onClick={init}
+                                        // onClick={init}
                                     >
                                         Cubed
                                     </h1>
@@ -156,7 +166,7 @@ const Landing: NextPage = () => {
                                             className={clsx(
                                                 LandingStyles.MintButton,
                                                 !BUY_CANVAS_LIVE &&
-                                                    "opacity-50 cursor-default"
+                                                    "opacity-60 cursor-default"
                                             )}
                                             onClick={async () => {
                                                 if (BUY_CANVAS_LIVE) {
@@ -252,7 +262,7 @@ const Landing: NextPage = () => {
                                 className={LandingStyles.PageMarker}
                                 onClick={() => scrollToId("team")}
                             >
-                                Team
+                                Creator
                             </div>
                             <div className={LandingStyles.MarkerDot}>•</div>
                             <div
@@ -428,47 +438,30 @@ const Landing: NextPage = () => {
                             className={clsx(LandingStyles.CenteringContainer)}
                         >
                             <h2 className={clsx(LandingStyles.ContentTitle)}>
-                                Team
+                                Creator
                             </h2>
                         </div>
                         <div className="flex flex-wrap justify-center">
                             <div className={LandingStyles.TeamContainer}>
                                 <div className="h-[256px] w-[256px] mb-4">
-                                    <MosaicTapestryV2
-                                        tapestry={randomTapestry(10, 10)}
-                                    />
+                                    <a
+                                        href="https://twitter.com/danny_nkjg"
+                                        target="_blank"
+                                        rel="noreferrer"
+                                    >
+                                        <Image
+                                            src="/pfp.png"
+                                            alt="logo"
+                                            width={pfpSideLen}
+                                            height={pfpSideLen}
+                                        />
+                                    </a>
                                 </div>
                                 <div className={LandingStyles.TeamTitle}>
-                                    Cube, the Father
+                                    Danny Geisz
                                 </div>
                                 <div className={LandingStyles.TeamPosition}>
-                                    (Frontend & UX Developer)
-                                </div>
-                            </div>
-                            <div className={LandingStyles.TeamContainer}>
-                                <div className="h-[256px] w-[256px] mb-4">
-                                    <MosaicTapestryV2
-                                        tapestry={randomTapestry(8, 8)}
-                                    />
-                                </div>
-                                <div className={LandingStyles.TeamTitle}>
-                                    Cube, the Son
-                                </div>
-                                <div className={LandingStyles.TeamPosition}>
-                                    (Backend & Contract Developer)
-                                </div>
-                            </div>
-                            <div className={LandingStyles.TeamContainer}>
-                                <div className="h-[256px] w-[256px] mb-4">
-                                    <MosaicTapestryV2
-                                        tapestry={randomTapestry(8, 8)}
-                                    />
-                                </div>
-                                <div className={LandingStyles.TeamTitle}>
-                                    Cube, the Artsy Ghost
-                                </div>
-                                <div className={LandingStyles.TeamPosition}>
-                                    (Lead Artist)
+                                    (Aspiring Hype Lord)
                                 </div>
                             </div>
                         </div>

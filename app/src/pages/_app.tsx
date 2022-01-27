@@ -18,6 +18,7 @@ import {
 } from "@solana/wallet-adapter-wallets";
 import { clusterApiUrl } from "@solana/web3.js";
 import { ProviderProvider } from "../lib/service_providers/provider_provider";
+import { withTutorial } from "../lib/service_providers/tutorial_provider";
 
 require("@solana/wallet-adapter-react-ui/styles.css");
 
@@ -54,7 +55,6 @@ function MyApp({ Component, pageProps }: AppProps) {
             </WalletProvider>
         </ConnectionProvider>
     );
-    // return <Component {...pageProps} />;
 }
 
-export default MyApp;
+export default withTutorial(MyApp);

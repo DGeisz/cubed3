@@ -2,6 +2,11 @@ import clsx from "clsx";
 
 const pageMarkerText = "text-2xl sm:text-3xl";
 export const pinkToPurple = "from-purple-500 via-sky-400 to-emerald-400";
+export const gradientText = clsx(
+    "text-transparent",
+    "bg-clip-text",
+    "bg-gradient-to-tr"
+);
 const redYellowText = clsx(
     "text-transparent",
     "bg-clip-text",
