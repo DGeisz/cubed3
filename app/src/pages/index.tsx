@@ -24,6 +24,7 @@ import { cubeSideLength } from "../global_constants/cube_dimensions";
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 import Modal from "../global_building_blocks/modal/model";
 import Image from "next/image";
+import axios from "axios";
 
 const DEV = false;
 
@@ -36,6 +37,14 @@ const Landing: NextPage = () => {
     const { setVisible } = useWalletModal();
 
     const [price, setPrice] = useState<number>(0.1);
+
+    const callBuyCanvas = async () => {
+        const res = await axios.post("http://localhost:4000/buy_canvas", {
+            hello: 1,
+        });
+
+        console.log("called", res.data);
+    };
 
     useEffect(() => {
         let master_pda: PublicKey;
@@ -123,6 +132,7 @@ const Landing: NextPage = () => {
                                             "mx-auto",
                                             DEV && "cursor-pointer"
                                         )}
+                                        onClick={callBuyCanvas}
                                         // onClick={init}
                                     >
                                         Cubed
