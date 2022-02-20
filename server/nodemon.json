@@ -1,7 +1,0 @@
-{
-  "env": {
-    "MONGO_USER": "cubed",
-    "MONGO_PASSWORD": "cubed333cubed",
-    "MONGO_DB": "your-db-name"
-  }
-}

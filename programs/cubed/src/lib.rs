@@ -12,7 +12,7 @@ use anchor_lang::solana_program::{
 use anchor_lang::{Accounts, CpiContext};
 use anchor_spl::token::{self, MintTo, TokenAccount, Transfer};
 
-declare_id!("EiawDaRsHXKZEt3rJHRbpwPZeNhzxZTv37RxPZgjkUSJ");
+declare_id!("5pDJMtbFrSnctiWQi57WtFgbpsuPbQKFkBMUyDMaVpef");
 // declare_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
 
 mod utils;

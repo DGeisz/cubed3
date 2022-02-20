@@ -6,7 +6,9 @@ import { Wallet } from "@project-serum/anchor/dist/cjs/provider";
 import idl from "../../global_idl/idl.json";
 import { Cubed } from "../../global_types/cubed";
 
-const programID = new PublicKey(idl.metadata.address);
+// const programID = new PublicKey(idl.metadata.address);
+// const programID = new PublicKey("EiawDaRsHXKZEt3rJHRbpwPZeNhzxZTv37RxPZgjkUSJ");
+const programID = new PublicKey("5pDJMtbFrSnctiWQi57WtFgbpsuPbQKFkBMUyDMaVpef");
 
 interface ContextType {
     provider: Provider;

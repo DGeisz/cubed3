@@ -26,9 +26,9 @@ import Modal from "../global_building_blocks/modal/model";
 import Image from "next/image";
 import axios from "axios";
 
-const DEV = false;
+const DEV = true;
 
-const BUY_CANVAS_LIVE = false;
+const BUY_CANVAS_LIVE = true;
 const pfpSideLen = 260;
 
 const Landing: NextPage = () => {
@@ -132,8 +132,8 @@ const Landing: NextPage = () => {
                                             "mx-auto",
                                             DEV && "cursor-pointer"
                                         )}
-                                        onClick={callBuyCanvas}
-                                        // onClick={init}
+                                        // onClick={callBuyCanvas}
+                                        onClick={init}
                                     >
                                         Cubed
                                     </h1>

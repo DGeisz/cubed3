@@ -10,6 +10,11 @@ import {
 } from "./chain_constants";
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import { Cubed } from "../global_types/cubed";
+import {
+    CubeSyntaxTurn,
+    encodePosition,
+    extendAlgo,
+} from "../global_architecture/cube_model/cube_model";
 
 let master_pda: PublicKey;
 let master_bump;
@@ -81,7 +86,7 @@ export async function buyCanvas(
     provider: Provider,
     program: Program<Cubed>,
     collection?: { key: PublicKey; bump: number; bytes: Buffer }
-) {
+): Promise<number> {
     const {
         master_pda,
         master_bump,
@@ -89,7 +94,9 @@ export async function buyCanvas(
         default_collection_bump,
     } = await getDefaultAddresses(program);
 
-    const canvas_time = new anchor.BN(Math.floor(Date.now() / 1000) - 1);
+    const time = Math.floor(Date.now() / 1000) - 1;
+
+    const canvas_time = new anchor.BN(time);
     const canvas_time_buffer = canvas_time.toArrayLike(Buffer, "le", 8);
 
     const [canvas_pda, canvas_bump] = await PublicKey.findProgramAddress(
@@ -99,6 +106,8 @@ export async function buyCanvas(
         ],
         program.programId
     );
+
+    console.log("canvas_pda", canvas_pda.toString());
 
     const [mint_pda, mint_bump] = await PublicKey.findProgramAddress(
         [
@@ -140,4 +149,38 @@ export async function buyCanvas(
     } catch (e) {
         console.error(e);
     }
+
+    return time;
+}
+
+export async function placeCube(
+    provider: Provider,
+    program: Program<Cubed>,
+    canvasTime: number,
+    algorithm: CubeSyntaxTurn[],
+    x: number,
+    y: number
+) {
+    const canvas_time = new anchor.BN(canvasTime);
+    const canvas_time_buffer = canvas_time.toArrayLike(Buffer, "le", 8);
+
+    const algo: CubeSyntaxTurn[] = extendAlgo(algorithm);
+    const xEn = encodePosition(x);
+    const yEn = encodePosition(y);
+
+    const [canvas_pda, canvas_bump] = await PublicKey.findProgramAddress(
+        [
+            Buffer.from(anchor.utils.bytes.utf8.encode(CANVAS_SEED)),
+            canvas_time_buffer,
+        ],
+        program.programId
+    );
+
+    await program.rpc.placeCube(canvas_bump, canvas_time, algo, xEn, yEn, {
+        accounts: {
+            artist: provider.wallet.publicKey,
+            canvas: canvas_pda,
+            systemProgram: SystemProgram.programId,
+        },
+    });
 }

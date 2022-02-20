@@ -6,3 +6,5 @@ target
 node_modules
 .idea/
 /app/test-ledger/*
+test-ledger/*
+.env
