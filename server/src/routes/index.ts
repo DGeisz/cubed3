@@ -1,6 +1,12 @@
 import { Router } from "express";
 import { buyCanvas, getCanvasRoute } from "../handlers/buy_canvas";
 import {
+  getAllCanvases,
+  getAllCollectionCanvases,
+  getArtistCanvases,
+  getCanvasByTime,
+} from "../handlers/get_canvases";
+import {
   finalizeCanvasUpdate,
   queueCanvasUpdate,
 } from "../handlers/update_canvas";
@@ -11,3 +17,9 @@ routes.post("/buy_canvas", buyCanvas);
 routes.post("/get_canvas", getCanvasRoute);
 routes.post("/queue_canvas_update", queueCanvasUpdate);
 routes.post("/finalize_canvas_update", finalizeCanvasUpdate);
+
+/* Get Canvases */
+routes.post("/all_canvases", getAllCanvases);
+routes.post("/collection_canvases", getAllCollectionCanvases);
+routes.post("/artist_canvases", getArtistCanvases);
+routes.post("/canvas_by_time", getCanvasByTime);

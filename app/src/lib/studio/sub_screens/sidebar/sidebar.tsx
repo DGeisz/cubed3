@@ -14,6 +14,7 @@ import Link from "next/link";
 import { MosaicTapestryV2 } from "../../../../global_building_blocks/mosaic_tapestry/mosaic_tapestry";
 
 interface Props {
+    time: number;
     switchScreens: () => void;
     setCubeEditorPeriod: (period: number) => void;
 }
@@ -45,6 +46,7 @@ const Sidebar: React.FC<Props> = (props) => {
                     "flex flex-col"
                 )}
             >
+                <div>This is time: {props.time}</div>
                 <div
                     className={clsx(
                         "flex flex-row border-b border-solid border-gray-200",

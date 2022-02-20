@@ -11,6 +11,23 @@ import {
 import { sha256 } from "@ethersproject/sha2";
 import * as anchor from "@project-serum/anchor";
 
+export interface ServerCubePlacement {
+    created: boolean;
+    algo: number[];
+    x: number;
+    y: number;
+}
+
+export interface ServerCanvas {
+    artist: string;
+    time: number;
+    collectionName: string;
+    finalCubes: ServerCubePlacement[];
+    /* We tell the server what the next intension for the
+  state of the canvas is so that we prevent data loss */
+    intendedCubes: ServerCubePlacement[];
+}
+
 export enum FaceOrientation {
     U,
     D,
@@ -1254,6 +1271,22 @@ export class CubeModel {
             return [];
         }
     }
+}
+
+export function serverCanvasToTapestry(
+    canvas: ServerCanvas
+): CubeTapestryModel {
+    const cubes: CanvasCube[] = canvas.finalCubes.map((placement) => {
+        const cube = new CubeModel();
+        cube.applyAlgoTurns(placement.algo);
+
+        return {
+            cube,
+            position: [placement.x, placement.y, 0],
+        };
+    });
+
+    return new CubeTapestryModel(cubes);
 }
 
 export interface CanvasCube {
