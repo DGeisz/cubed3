@@ -1,6 +1,8 @@
 import { Response, Request } from "express";
 import { getCanvas } from "../services/solana/utils/data_fetch";
 import { CanvasModel } from "../models";
+import { collectionStringToBytes } from "../models/cubed/hash_utils";
+import _ from "underscore";
 
 export async function getCanvasRoute(
   req: Request<any, any, { time: number }>,
@@ -13,10 +15,10 @@ export async function getCanvasRoute(
 }
 
 export async function buyCanvas(
-  req: Request<any, any, { time: number }>,
+  req: Request<any, any, { time: number; collectionName: string }>,
   res: Response
 ) {
-  const { time } = req.body;
+  const { time, collectionName } = req.body;
 
   try {
     /* See if we have the canvas in mongo */
@@ -28,12 +30,22 @@ export async function buyCanvas(
       });
     }
 
+    const collNameBytes = collectionStringToBytes(collectionName);
+
     /* First actually get the canvas */
     const canvas = await getCanvas(time);
+
+    /* Make sure the collection name matches the on chain rep */
+    if (!_.isEqual(canvas.collectionName, Array.from(collNameBytes))) {
+      return res.status(400).send({
+        message: "collection name doesn't match chain",
+      });
+    }
 
     /* Alright, now we're going to create the object in mongo */
     const doc = new CanvasModel({
       artist: canvas.artist.toString(),
+      collectionName: collectionName,
       time,
       finalCubes: [],
       intendedCubes: [],

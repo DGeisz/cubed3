@@ -7,7 +7,10 @@ export const COLLECTION_SEED = "clln";
 export const INITIAL_CANVAS_CUBES = 16;
 export const MIN_CANVAS_PRICE = 0.1;
 export const CUBE_PRICE = 0.01;
-export const DEFAULT_COLLECTION_NAME_BYTES = collectionStringToBytes("default");
+export const DEFAULT_COLLECTION_NAME = "default";
+export const DEFAULT_COLLECTION_NAME_BYTES = collectionStringToBytes(
+    DEFAULT_COLLECTION_NAME
+);
 export const TOKEN_ACCOUNT_SEED_PREFIX = "token";
 export const ESCROW_ACCOUNT_SEED_PREFIX = "escrow";
 export const LISTING_SEED_PREFIX = "listing";

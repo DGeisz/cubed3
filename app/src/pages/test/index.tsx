@@ -3,14 +3,17 @@ import React, { useState } from "react";
 import clsx from "clsx";
 import axios from "axios";
 import { useProvider } from "../../lib/service_providers/provider_provider";
-import { LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js";
+import { PublicKey } from "@solana/web3.js";
 import {
     buyCanvas,
-    getDefaultAddresses,
     initializeCubed,
+    placeCube,
 } from "../../global_chain/chain_methods";
 import * as anchor from "@project-serum/anchor";
-import { CANVAS_SEED } from "../../global_chain/chain_constants";
+import {
+    CANVAS_SEED,
+    DEFAULT_COLLECTION_NAME,
+} from "../../global_chain/chain_constants";
 import { useWallet } from "@solana/wallet-adapter-react";
 
 const BASE_URL = "http://localhost:4000";
@@ -31,8 +34,6 @@ const TestPage: NextPage = () => {
 
     const wallet = useWallet();
 
-    console.log("this is buffer", a);
-
     const callCreateUser = async () => {
         const res = await axios.post(`${BASE_URL}/create_user`, {
             name: "Danny",
@@ -51,6 +52,7 @@ const TestPage: NextPage = () => {
 
         const res = await axios.post(`${BASE_URL}/buy_canvas`, {
             time,
+            collectionName: DEFAULT_COLLECTION_NAME,
         });
 
         console.log("finished", res.data);
@@ -66,7 +68,7 @@ const TestPage: NextPage = () => {
         console.log("canvas time", JSON.stringify(res.data, undefined, 2));
     }
 
-    async function checkUpdate() {
+    async function placeCubeFullMeth() {
         const p: CubePlacement = {
             algo: [1, 2, 3],
             x: 1,
@@ -75,11 +77,10 @@ const TestPage: NextPage = () => {
         };
 
         if (wallet.signMessage) {
+            /* Start off by expressing intent to the server */
+
             const msg = Buffer.from(JSON.stringify(p), "utf-8");
-
             const sig = await wallet.signMessage(msg);
-
-            console.log("sig", msg, sig);
 
             const res = await axios.post(`${BASE_URL}/queue_canvas_update`, {
                 time: canvasTime,
@@ -88,7 +89,28 @@ const TestPage: NextPage = () => {
             });
 
             console.log("res", res);
+
+            /* Now send the actual placement request to the chain */
+            await placeCube(provider, program, canvasTime, p.algo, p.x, p.y);
+
+            const finalRes = await axios.post(
+                `${BASE_URL}/finalize_canvas_update`,
+                {
+                    time: canvasTime,
+                }
+            );
         }
+    }
+
+    async function finalizePlacement() {
+        const finalRes = await axios.post(
+            `${BASE_URL}/finalize_canvas_update`,
+            {
+                time: canvasTime,
+            }
+        );
+
+        console.log("finalRes", finalRes);
     }
 
     async function getCanvasInfoLocal() {
@@ -116,66 +138,35 @@ const TestPage: NextPage = () => {
         console.log("get user", res.data);
     };
 
+    const OptButton: React.FC<{ onClick: () => void | Promise<void> }> = (
+        props
+    ) => {
+        return (
+            <div
+                className={clsx(
+                    "bg-cyan-600 font-bold rounded shadow-sm mr-4 p-2 text-white",
+                    "cursor-pointer mb-4"
+                )}
+                onClick={props.onClick}
+            >
+                {props.children}
+            </div>
+        );
+    };
+
     return (
         <div className={clsx("h-screen w-screen bg-white p-8")}>
-            <div className={clsx("flex flex-row")}>
-                <div
-                    className={clsx(
-                        "bg-cyan-600 font-bold rounded shadow-sm mr-4 p-2 text-white",
-                        "cursor-pointer"
-                    )}
-                    onClick={callCreateUser}
-                >
-                    Create User
-                </div>
-                <div
-                    className={clsx(
-                        "bg-cyan-600 font-bold rounded shadow-sm mr-4 p-2 text-white cursor-pointer"
-                    )}
-                    onClick={callGetUser}
-                >
-                    Get User
-                </div>
-                <div
-                    className={clsx(
-                        "bg-cyan-600 font-bold rounded shadow-sm mr-4 p-2 text-white cursor-pointer"
-                    )}
-                    onClick={init}
-                >
-                    Init
-                </div>
-                <div
-                    className={clsx(
-                        "bg-cyan-600 font-bold rounded shadow-sm mr-4 p-2 text-white cursor-pointer"
-                    )}
-                    onClick={buyCanvasMeth}
-                >
-                    Buy Canvas
-                </div>
-                <div
-                    className={clsx(
-                        "bg-cyan-600 font-bold rounded shadow-sm mr-4 p-2 text-white cursor-pointer"
-                    )}
-                    onClick={getCanvasInfo}
-                >
-                    Get Canvas
-                </div>
-                <div
-                    className={clsx(
-                        "bg-cyan-600 font-bold rounded shadow-sm mr-4 p-2 text-white cursor-pointer"
-                    )}
-                    onClick={getCanvasInfoLocal}
-                >
+            <div className={clsx("flex flex-row flex-wrap")}>
+                <OptButton onClick={callCreateUser}>Create User</OptButton>
+                <OptButton onClick={callGetUser}>Get User</OptButton>
+                <OptButton onClick={init}>Init</OptButton>
+                <OptButton onClick={buyCanvasMeth}>Buy Canvas</OptButton>
+                <OptButton onClick={getCanvasInfo}>Get Canvas</OptButton>
+                <OptButton onClick={getCanvasInfoLocal}>
                     Get Canvas Local
-                </div>
-                <div
-                    className={clsx(
-                        "bg-cyan-600 font-bold rounded shadow-sm mr-4 p-2 text-white cursor-pointer"
-                    )}
-                    onClick={checkUpdate}
-                >
-                    Check Update
-                </div>
+                </OptButton>
+                <OptButton onClick={placeCubeFullMeth}>Place Cube</OptButton>
+                <OptButton onClick={finalizePlacement}>Finalize Cube</OptButton>
             </div>
             <div>{canvasTime}</div>
         </div>

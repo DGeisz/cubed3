@@ -1,4 +1,4 @@
-import { model, Schema } from "mongoose";
+import { model, Schema, Document } from "mongoose";
 
 export interface CubePlacement {
   created: boolean;
@@ -33,6 +33,7 @@ const CubePlacementSchema = new Schema<CubePlacement>({
 interface Canvas {
   artist: string;
   time: number;
+  collectionName: string;
   finalCubes: CubePlacement[];
   /* We tell the server what the next intension for the
   state of the canvas is so that we prevent data loss */
@@ -42,6 +43,10 @@ interface Canvas {
 /* Canvas */
 const CanvasSchema = new Schema<Canvas>({
   artist: {
+    type: String,
+    required: true,
+  },
+  collectionName: {
     type: String,
     required: true,
   },
@@ -61,3 +66,14 @@ const CanvasSchema = new Schema<Canvas>({
 });
 
 export const CanvasModel = model<Canvas>("Canvas", CanvasSchema);
+
+export async function getMongoCanvas(time: number) {
+  /* Ok, now let's fetch the canvas */
+  const c = await CanvasModel.find({ time });
+
+  if (c.length !== 1) {
+    return undefined;
+  }
+
+  return c[0];
+}

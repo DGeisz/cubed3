@@ -11,19 +11,44 @@ import {
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import { Cubed } from "../global_types/cubed";
 import {
+    collectionStringToBytes,
     CubeSyntaxTurn,
     encodePosition,
     extendAlgo,
 } from "../global_architecture/cube_model/cube_model";
-
-let master_pda: PublicKey;
-let master_bump;
 
 interface DefaultAddresses {
     master_pda: PublicKey;
     master_bump: number;
     default_collection_pda: PublicKey;
     default_collection_bump: number;
+}
+
+interface CollectionInfo {
+    key: PublicKey;
+    bump: number;
+    bytes: Buffer;
+}
+
+export async function getCollectionInfo(
+    program: Program<Cubed>,
+    name: string
+): Promise<CollectionInfo> {
+    const name_bytes = collectionStringToBytes(name);
+
+    const [pda, bump] = await PublicKey.findProgramAddress(
+        [
+            Buffer.from(anchor.utils.bytes.utf8.encode(COLLECTION_SEED)),
+            name_bytes,
+        ],
+        program.programId
+    );
+
+    return {
+        key: pda,
+        bump,
+        bytes: name_bytes,
+    };
 }
 
 export async function getDefaultAddresses(
@@ -85,7 +110,7 @@ export async function initializeCubed(
 export async function buyCanvas(
     provider: Provider,
     program: Program<Cubed>,
-    collection?: { key: PublicKey; bump: number; bytes: Buffer }
+    collection?: CollectionInfo
 ): Promise<number> {
     const {
         master_pda,
@@ -177,6 +202,36 @@ export async function placeCube(
     );
 
     await program.rpc.placeCube(canvas_bump, canvas_time, algo, xEn, yEn, {
+        accounts: {
+            artist: provider.wallet.publicKey,
+            canvas: canvas_pda,
+            systemProgram: SystemProgram.programId,
+        },
+    });
+}
+
+export async function removeCube(
+    provider: Provider,
+    program: Program<Cubed>,
+    canvasTime: number,
+    x: number,
+    y: number
+) {
+    const canvas_time = new anchor.BN(canvasTime);
+    const canvas_time_buffer = canvas_time.toArrayLike(Buffer, "le", 8);
+
+    const xEn = encodePosition(x);
+    const yEn = encodePosition(y);
+
+    const [canvas_pda, canvas_bump] = await PublicKey.findProgramAddress(
+        [
+            Buffer.from(anchor.utils.bytes.utf8.encode(CANVAS_SEED)),
+            canvas_time_buffer,
+        ],
+        program.programId
+    );
+
+    await program.rpc.removeCube(canvas_bump, canvas_time, xEn, yEn, {
         accounts: {
             artist: provider.wallet.publicKey,
             canvas: canvas_pda,
