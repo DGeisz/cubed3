@@ -10,6 +10,7 @@ import {
 } from "./utils/utils";
 import { sha256 } from "@ethersproject/sha2";
 import * as anchor from "@project-serum/anchor";
+import { CubePlacement } from "../../pages/test";
 
 export interface ServerCubePlacement {
     created: boolean;
@@ -1276,7 +1277,23 @@ export class CubeModel {
 export function serverCanvasToTapestry(
     canvas: ServerCanvas
 ): CubeTapestryModel {
-    const cubes: CanvasCube[] = canvas.finalCubes.map((placement) => {
+    const placeToString = (placement: CubePlacement) => {
+        return `${placement.x}:${placement.y}`;
+    };
+
+    const cubeMap: Record<string, CubePlacement> = {};
+
+    for (let place of canvas.finalCubes) {
+        if (place.created) {
+            cubeMap[placeToString(place)] = place;
+        } else {
+            delete cubeMap[placeToString(place)];
+        }
+    }
+
+    const finalPlaces = Object.values(cubeMap);
+
+    const cubes: CanvasCube[] = finalPlaces.map((placement) => {
         const cube = new CubeModel();
         cube.applyAlgoTurns(placement.algo);
 
