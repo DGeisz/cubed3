@@ -6,6 +6,7 @@ import { CubedSolanaProgram } from "../init";
 
 interface Canvas {
   artist: PublicKey;
+  price: anchor.BN;
   collectionName: number[];
   cubesInCanvas: number;
   finished: boolean;

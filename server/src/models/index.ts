@@ -7,8 +7,6 @@ export interface CubePlacement {
   y: number;
 }
 
-const a = new Uint8Array([1, 2, 3, 4]);
-
 const CubePlacementSchema = new Schema<CubePlacement>({
   /* Indicates whether a cube was created or
   deleted from this location */
@@ -33,6 +31,7 @@ const CubePlacementSchema = new Schema<CubePlacement>({
 interface Canvas {
   artist: string;
   time: number;
+  price: number;
   collectionName: string;
   finalCubes: CubePlacement[];
   /* We tell the server what the next intension for the
@@ -44,6 +43,10 @@ interface Canvas {
 const CanvasSchema = new Schema<Canvas>({
   artist: {
     type: String,
+    required: true,
+  },
+  price: {
+    type: Number,
     required: true,
   },
   collectionName: {

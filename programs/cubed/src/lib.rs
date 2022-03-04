@@ -128,6 +128,7 @@ pub mod cubed {
         /* Create the canvas */
         canvas.artist = artist.key();
         canvas.unused_cubes = INIT_CUBES;
+        canvas.price = current_price;
         canvas.cubes_in_canvas = 0;
         canvas.last_hash = hash::hash(&epoch_time.to_le_bytes()).to_bytes();
         canvas.init_hash = canvas.last_hash;
@@ -1357,7 +1358,7 @@ pub struct BuyCanvas<'info> {
         payer = artist,
         seeds = [CANVAS_SEED_PREFIX, &epoch_time.to_le_bytes()],
         bump = _canvas_bump,
-        space = 8 + 132 + 1)]
+        space = 8 + 196 + 1)]
     pub canvas: Account<'info, CubedCanvas>,
     #[account(
         init,
@@ -1456,6 +1457,7 @@ pub struct CubedCollection {
 #[account]
 pub struct CubedCanvas {
     pub artist: Pubkey,
+    pub price: u64,
     pub unused_cubes: u16,
     pub cubes_in_canvas: u16,
     pub init_hash: [u8; 32],

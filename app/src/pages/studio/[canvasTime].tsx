@@ -1,4 +1,4 @@
-import React, { Suspense, useRef, useState } from "react";
+import React, { Suspense, useEffect, useRef, useState } from "react";
 import { useFrame } from "@react-three/fiber";
 import { NextPage } from "next";
 import { OrbitControls } from "@react-three/drei";
@@ -7,6 +7,7 @@ import clsx from "clsx";
 import {
     CanvasCube,
     CubeModel,
+    serverCanvasToTapestry,
 } from "../../global_architecture/cube_model/cube_model";
 import { Vector3Tuple } from "three";
 import CubeCanvas from "../../lib/studio/sub_screens/cube_canvas/cube_canvas";
@@ -21,9 +22,11 @@ import {
 } from "../../lib/studio/service_providers/studio_state_provider/studio_state_provider";
 import Sidebar from "../../lib/studio/sub_screens/sidebar/sidebar";
 import { useRouter } from "next/router";
+import { useCanvasByTime } from "../../lib/studio/routes/canvasTime/api/queries";
 
 interface StudioProps {
     cubePeriod: number;
+    loading: boolean;
 }
 
 const initCameraEditorPosition: Vector3Tuple = [5, 8, 15];
@@ -100,6 +103,7 @@ const StudioInner: React.FC<StudioProps> = (props) => {
                 )}
                 {screen === StudioScreen.Canvas && (
                     <CubeCanvas
+                        loading={props.loading}
                         newCubeAlgo={newCubeAlgo}
                         tapestry={tapestry}
                         setNewCube={(position) => {
@@ -133,9 +137,29 @@ const Studio: NextPage = () => {
         canvasTime = parseInt(router.query.canvasTime);
     }
 
+    const {
+        data: serverCanvas,
+        loading,
+        error,
+        refetch,
+    } = useCanvasByTime(canvasTime);
+
     const [dark, setDark] = useState<boolean>(false);
+
     const { setStudioScreen, studioScreen } = useStudioScreenInfo();
+    const { setTapestry } = useTapestryInfo();
+
     const [cubePeriod, setCubePeriod] = useState<number>(0);
+
+    useEffect(() => {
+        if (serverCanvas && canvasTime > 0) {
+            setTapestry(serverCanvasToTapestry(serverCanvas));
+        }
+    }, [
+        !!serverCanvas,
+        canvasTime,
+        serverCanvas?.finalCubes ? serverCanvas.finalCubes.length : 0,
+    ]);
 
     const fancySwitch = () => {
         setDark(true);
@@ -158,12 +182,12 @@ const Studio: NextPage = () => {
                 }}
             >
                 <color attach="background" args={["white"]} />
-                <StudioInner cubePeriod={cubePeriod} />
+                <StudioInner cubePeriod={cubePeriod} loading={loading} />
             </ForwardCanvas>
             <Sidebar
+                canvasTime={canvasTime}
                 switchScreens={fancySwitch}
                 setCubeEditorPeriod={setCubePeriod}
-                time={canvasTime}
             />
             <div
                 className={clsx(

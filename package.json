@@ -8,6 +8,9 @@
     "sha256-rust-wasm": "^1.0.0",
     "underscore": "^1.13.2"
   },
+  "scripts": {
+    "solBuild": "cd app && yarn run solBuild && cd ../server && yarn run solBuild && cd .."
+  },
   "devDependencies": {
     "@types/axios": "^0.14.0",
     "@types/bn.js": "^5.1.0",

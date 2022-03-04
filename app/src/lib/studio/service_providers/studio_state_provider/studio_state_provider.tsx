@@ -9,6 +9,7 @@ import {
 export enum StudioScreen {
     Editor,
     Canvas,
+    Confirm,
 }
 
 interface StudioStateContext {

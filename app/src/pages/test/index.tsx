@@ -47,6 +47,10 @@ const TestPage: NextPage = () => {
         await initializeCubed(provider, program);
     }
 
+    async function deleteEverything() {
+        await axios.post(`${BASE_URL}/delete_everything`);
+    }
+
     async function buyCanvasMeth() {
         const time = await buyCanvas(provider, program);
 
@@ -66,6 +70,12 @@ const TestPage: NextPage = () => {
         });
 
         console.log("canvas time", JSON.stringify(res.data, undefined, 2));
+    }
+
+    async function allCanvases() {
+        const res = await axios.post(`${BASE_URL}/all_canvases`);
+
+        console.log("all canvases", JSON.stringify(res.data, undefined, 2));
     }
 
     async function placeCubeFullMeth() {
@@ -162,11 +172,15 @@ const TestPage: NextPage = () => {
                 <OptButton onClick={init}>Init</OptButton>
                 <OptButton onClick={buyCanvasMeth}>Buy Canvas</OptButton>
                 <OptButton onClick={getCanvasInfo}>Get Canvas</OptButton>
+                <OptButton onClick={allCanvases}>All Canvases</OptButton>
                 <OptButton onClick={getCanvasInfoLocal}>
                     Get Canvas Local
                 </OptButton>
                 <OptButton onClick={placeCubeFullMeth}>Place Cube</OptButton>
                 <OptButton onClick={finalizePlacement}>Finalize Cube</OptButton>
+                <OptButton onClick={deleteEverything}>
+                    Delete Everything
+                </OptButton>
             </div>
             <div>{canvasTime}</div>
         </div>

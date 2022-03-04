@@ -9,7 +9,11 @@ import { ContactShadows } from "@react-three/drei";
 
 const textColor = StickerColorHex.Yellow;
 
-const EmptyCanvasText: React.FC = () => {
+interface EmptyCanvasProps {
+    loading: boolean;
+}
+
+const EmptyCanvasText: React.FC<EmptyCanvasProps> = (props) => {
     const textRef = useRef<any>();
 
     const font = useMemo(() => new FontLoader().parse(TitWeb), []);
@@ -21,8 +25,11 @@ const EmptyCanvasText: React.FC = () => {
             height: 0.1,
         };
 
-        return new TextGeometry(EmptyCanvasMessage.top, textOptions);
-    }, []);
+        return new TextGeometry(
+            props.loading ? "Loading..." : EmptyCanvasMessage.top,
+            textOptions
+        );
+    }, [props.loading]);
 
     const bottomText = useMemo(() => {
         const font = new FontLoader().parse(TitWeb);
@@ -57,9 +64,14 @@ const EmptyCanvasText: React.FC = () => {
                 <mesh geometry={topText} position={[-5, 1, 0]}>
                     <meshPhongMaterial attach="material" color={textColor} />
                 </mesh>
-                <mesh geometry={bottomText} position={[-4.8, 0, 0]}>
-                    <meshStandardMaterial attach="material" color={textColor} />
-                </mesh>
+                {!props.loading && (
+                    <mesh geometry={bottomText} position={[-4.8, 0, 0]}>
+                        <meshStandardMaterial
+                            attach="material"
+                            color={textColor}
+                        />
+                    </mesh>
+                )}
             </group>
         </>
     );

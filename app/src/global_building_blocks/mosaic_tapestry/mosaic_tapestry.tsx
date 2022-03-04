@@ -215,7 +215,7 @@ export const MosaicTapestryV2: React.FC<Props> = (props) => {
             setHeight(ref.current.clientHeight);
             setWidth(ref.current.clientWidth);
         }
-    }, [refExists]);
+    });
 
     return (
         <div ref={ref} className="relative h-full w-full">

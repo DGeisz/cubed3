@@ -17,7 +17,10 @@
   },
   "scripts": {
     "build": "tsc",
-    "start": "concurrently \"tsc -w\" \"nodemon dist/js/index.js\""
+    "start": "concurrently \"tsc -w\" \"nodemon dist/js/index.js\"",
+    "idl": "cp ../target/idl/cubed.json src/services/solana/idl.json",
+    "types": "cp ../target/types/cubed.ts src/services/solana/cubed.ts ",
+    "solBuild": "yarn idl && yarn types"
   },
   "devDependencies": {
     "@types/cors": "^2.8.12",

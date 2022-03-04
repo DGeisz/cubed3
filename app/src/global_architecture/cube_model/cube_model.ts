@@ -21,6 +21,7 @@ export interface ServerCubePlacement {
 
 export interface ServerCanvas {
     artist: string;
+    price: number;
     time: number;
     collectionName: string;
     finalCubes: ServerCubePlacement[];

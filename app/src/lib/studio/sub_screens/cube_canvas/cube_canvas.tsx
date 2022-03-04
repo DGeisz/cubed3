@@ -16,12 +16,12 @@ import { FixedCube } from "../../../../global_building_blocks/cube/cube";
 import { euclideanDistance } from "../../../../global_architecture/cube_model/utils/utils";
 import { getFOVHeightWidthTan } from "../../../../global_three/utils/camera";
 import EmptyCanvasText from "../empty_canvas_text/empty_canvas_text";
-import { ContactShadows } from "@react-three/drei";
 
 interface Props {
     tapestry: CubeTapestryModel;
     newCubeAlgo?: CubeSyntaxTurn[];
     setNewCube: (position: Vector3Tuple) => void;
+    loading: boolean;
 }
 
 const CubeCanvas: React.FC<Props> = (props) => {
@@ -107,7 +107,10 @@ const CubeCanvas: React.FC<Props> = (props) => {
         }
     });
 
-    if (props.tapestry.cubes.length > 0 || props.newCubeAlgo) {
+    if (
+        !props.loading &&
+        (props.tapestry.cubes.length > 0 || props.newCubeAlgo)
+    ) {
         return (
             <>
                 <group>
@@ -128,7 +131,7 @@ const CubeCanvas: React.FC<Props> = (props) => {
             </>
         );
     } else {
-        return <EmptyCanvasText />;
+        return <EmptyCanvasText loading={props.loading} />;
     }
 };
 

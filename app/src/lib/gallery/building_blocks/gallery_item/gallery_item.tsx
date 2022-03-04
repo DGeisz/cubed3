@@ -1,4 +1,5 @@
 import clsx from "clsx";
+import Link from "next/link";
 import React from "react";
 import { CubeTapestryModel } from "../../../../global_architecture/cube_model/cube_model";
 import { MosaicTapestryV2 } from "../../../../global_building_blocks/mosaic_tapestry/mosaic_tapestry";
@@ -6,6 +7,8 @@ import { numberWithCommas } from "../../../../global_utils/number_utils";
 import { LandingStyles } from "../../../landing_styles";
 import { MosaicTapestry } from "../mosaic_tapestry/mosaic_tapestry";
 import { GalleryItemStyles } from "./gallery_item_styles";
+
+const MAX_ARTIST_LEN = 20;
 
 export enum GalleryItemMessage {
     IntrinsicValue,
@@ -29,6 +32,7 @@ export function galleryMessageToString(message: GalleryItemMessage): string {
 
 interface Props {
     tapestry: CubeTapestryModel;
+    time: number;
     artist: string;
     message: GalleryItemMessage;
     sol: number;
@@ -39,8 +43,10 @@ const GalleryItem: React.FC<Props> = (props) => {
         <div className="flex justify-center items-center flex-1 m-4">
             <div className="p-4  shadow-md bg-slate-200/80 rounded">
                 <div className="bg-slate-100/100 p-4 rounded">
-                    <div className="h-[256px] w-[256px] mb-4">
-                        <MosaicTapestryV2 tapestry={props.tapestry} />
+                    <div className="flex justify-center">
+                        <div className="h-[256px] w-[256px] mb-4 ">
+                            <MosaicTapestryV2 tapestry={props.tapestry} />
+                        </div>
                     </div>
                     <div>
                         <div className={GalleryItemStyles.TitleHeader}>
@@ -53,7 +59,10 @@ const GalleryItem: React.FC<Props> = (props) => {
                                 GalleryItemStyles.ContentText
                             )}
                         >
-                            {props.artist}
+                            {props.artist.length > MAX_ARTIST_LEN
+                                ? props.artist.substring(0, MAX_ARTIST_LEN) +
+                                  "..."
+                                : props.artist}
                         </div>
                         <div className={GalleryItemStyles.TitleHeader}>
                             {galleryMessageToString(props.message)}
@@ -67,14 +76,16 @@ const GalleryItem: React.FC<Props> = (props) => {
                             <span className={clsx(LandingStyles.SolanaText)}>
                                 ◎
                             </span>
-                            {numberWithCommas(10000.001)}
+                            {numberWithCommas(props.sol)}
                         </div>
                     </div>
                 </div>
                 <div className="flex justify-center items-center mt-4">
-                    <div className={GalleryItemStyles.ViewButton}>
-                        View in Studio
-                    </div>
+                    <Link href={`/studio/${props.time}`}>
+                        <a className={GalleryItemStyles.ViewButton}>
+                            View in Studio
+                        </a>
+                    </Link>
                 </div>
             </div>
         </div>

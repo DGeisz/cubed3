@@ -12,9 +12,11 @@ import {
 } from "../../service_providers/studio_state_provider/studio_state_provider";
 import Link from "next/link";
 import { MosaicTapestryV2 } from "../../../../global_building_blocks/mosaic_tapestry/mosaic_tapestry";
+import { tap } from "underscore";
+import { useSolCanvas } from "../../routes/canvasTime/api/queries";
 
 interface Props {
-    time: number;
+    canvasTime: number;
     switchScreens: () => void;
     setCubeEditorPeriod: (period: number) => void;
 }
@@ -28,11 +30,19 @@ const Sidebar: React.FC<Props> = (props) => {
     const { studioScreen } = useStudioScreenInfo();
     const { tapestry } = useTapestryInfo();
 
+    const {
+        data: canvas,
+        loading: canvasLoading,
+        error,
+    } = useSolCanvas(props.canvasTime);
+
     const [cubePeriod, setCubePeriod] = useState<number>(defaultPeriod);
 
     useEffect(() => {
         props.setCubeEditorPeriod(cubePeriod);
     }, [cubePeriod]);
+
+    const hasMoreCubes = !!canvas ? canvas.unusedCubes > 0 : true;
 
     return (
         <>
@@ -46,7 +56,6 @@ const Sidebar: React.FC<Props> = (props) => {
                     "flex flex-col"
                 )}
             >
-                <div>This is time: {props.time}</div>
                 <div
                     className={clsx(
                         "flex flex-row border-b border-solid border-gray-200",
@@ -87,11 +96,21 @@ const Sidebar: React.FC<Props> = (props) => {
                                     className={StudioStyles.studioButton}
                                     onClick={props.switchScreens}
                                 >
-                                    Add Cube
+                                    {hasMoreCubes
+                                        ? "Add Cube"
+                                        : "Get More Cubes!"}
                                 </div>
                             </div>
-                            <div className="h-[150px] w-[150px]">
-                                <MosaicTapestryV2 tapestry={tapestry} />
+                            <div className="flex justify-center mt-4">
+                                {tapestry.cubes.length === 1 ? (
+                                    <div className="h-[100px] w-[100px]">
+                                        <MosaicTapestryV2 tapestry={tapestry} />
+                                    </div>
+                                ) : (
+                                    <div className="h-[150px] w-[150px]">
+                                        <MosaicTapestryV2 tapestry={tapestry} />
+                                    </div>
+                                )}
                             </div>
                         </div>
                     )}
@@ -197,11 +216,10 @@ const Sidebar: React.FC<Props> = (props) => {
                             <div className={StudioStyles.categoryTitle}>
                                 Unused Cubes
                             </div>
-                            <div className={StudioStyles.categoryStat}>10</div>
-                        </div>
-                        <div className={StudioStyles.buttonContainer}>
-                            <div className={StudioStyles.studioButton}>
-                                Get More Cubes!
+                            <div className={StudioStyles.categoryStat}>
+                                {canvasLoading
+                                    ? "Loading..."
+                                    : canvas?.unusedCubes}
                             </div>
                         </div>
                     </div>

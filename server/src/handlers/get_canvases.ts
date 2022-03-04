@@ -28,5 +28,5 @@ export async function getCanvasByTime(
 ) {
   const { canvasTime } = req.body;
 
-  return res.json(getMongoCanvas(canvasTime));
+  return res.json(await getMongoCanvas(canvasTime));
 }

@@ -45,6 +45,7 @@ export async function buyCanvas(
     /* Alright, now we're going to create the object in mongo */
     const doc = new CanvasModel({
       artist: canvas.artist.toString(),
+      price: canvas.price,
       collectionName: collectionName,
       time,
       finalCubes: [],

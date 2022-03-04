@@ -1091,6 +1091,10 @@
             "type": "publicKey"
           },
           {
+            "name": "price",
+            "type": "u64"
+          },
+          {
             "name": "unusedCubes",
             "type": "u16"
           },
@@ -1192,5 +1196,8 @@
         ]
       }
     }
-  ]
+  ],
+  "metadata": {
+    "address": "5pDJMtbFrSnctiWQi57WtFgbpsuPbQKFkBMUyDMaVpef"
+  }
 }
