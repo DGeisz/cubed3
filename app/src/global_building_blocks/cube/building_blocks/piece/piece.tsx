@@ -13,6 +13,7 @@ import {
     Sticker,
     StickerColor,
 } from "../../../../global_architecture/cube_model/cube_model";
+import { MeshStandardMaterialParameters } from "three";
 
 export interface CubePieceProps extends GroupProps {
     pieceIndex: number;
@@ -21,9 +22,13 @@ export interface CubePieceProps extends GroupProps {
     setSelectedSticker?: (sticker: FocusedSticker) => void;
     targetSticker?: FocusedSticker;
     sourceSticker?: FocusedSticker;
-    materialGenerator: (color: StickerColor) => THREE.Material;
+    materialGenerator: (
+        color: StickerColor,
+        opts?: MeshStandardMaterialParameters
+    ) => THREE.Material;
     infDelta?: number;
     stickers: Sticker[];
+    opacity?: number;
 }
 
 type VecProp = [number, number, number];
@@ -42,7 +47,11 @@ const CubePiece: React.FC<CubePieceProps> = (props) => {
                 radius={cubeRoundedRadius}
                 smoothness={4}
             >
-                <meshStandardMaterial color="black" />
+                <meshStandardMaterial
+                    color="black"
+                    opacity={props.opacity}
+                    transparent
+                />
             </RoundedBox>
             {props.stickers.map((sticker, i) => {
                 const { targetSticker, hoveredSticker, sourceSticker } = props;
@@ -67,7 +76,8 @@ const CubePiece: React.FC<CubePieceProps> = (props) => {
                         ? StickerColor.SourceMint
                         : isHovered
                         ? StickerColor.HoverViolet
-                        : sticker.color
+                        : sticker.color,
+                    props.opacity ? { opacity: props.opacity } : {}
                 );
 
                 let position: VecProp = [0, 0, 0];

@@ -1,4 +1,6 @@
+import { MeshStandardMaterialProps } from "@react-three/fiber";
 import * as THREE from "three";
+import { MeshStandardMaterialParameters } from "three";
 import {
     StickerColor,
     stickerColorToHex,
@@ -25,11 +27,20 @@ function createMetallicMaterial(color: number | string): THREE.Material {
     }
 }
 
-export function standardMaterialGenerator(color: StickerColor): THREE.Material {
-    return new THREE.MeshStandardMaterial({
-        color: stickerColorToHex(color),
-        side: THREE.DoubleSide,
-    });
+export function standardMaterialGenerator(
+    color: StickerColor,
+    opts?: MeshStandardMaterialParameters
+): THREE.Material {
+    opts = Object.assign(
+        {
+            color: stickerColorToHex(color),
+            side: THREE.DoubleSide,
+            transparent: true,
+        },
+        opts
+    );
+
+    return new THREE.MeshStandardMaterial(opts);
 }
 
 function stickerColorToColor(color: StickerColor): string {

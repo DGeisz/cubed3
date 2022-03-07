@@ -57,9 +57,6 @@ const CubeTapestry: React.FC<CubeTapestryProps> = React.forwardRef<
                 tempPiece.updateMatrix();
                 piecesRef.current.setMatrixAt(pieceIndex, tempPiece.matrix);
 
-                // const stickerColors = stickersToFaceColors(piece.stickers);
-
-                // for (const [face, color] of Object.entries(stickerColors)) {
                 for (const sticker of piece.stickers) {
                     stickerIndex++;
 
@@ -159,7 +156,6 @@ const CubeTapestry: React.FC<CubeTapestryProps> = React.forwardRef<
         if (needsUpdate) {
             triggerUpdate();
         }
-        // setStickerColors(stickerColorArray);
     });
 
     return (

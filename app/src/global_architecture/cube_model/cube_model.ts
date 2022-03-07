@@ -1307,6 +1307,10 @@ export function serverCanvasToTapestry(
     return new CubeTapestryModel(cubes);
 }
 
+export function positionsEqual(p1: Vector3Tuple, p2: Vector3Tuple): boolean {
+    return p1[0] === p2[0] && p1[1] === p2[1] && p1[2] === p2[2];
+}
+
 export interface CanvasCube {
     cube: CubeModel;
     position: Vector3Tuple;

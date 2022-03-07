@@ -45,7 +45,23 @@ const GalleryItem: React.FC<Props> = (props) => {
                 <div className="bg-slate-100/100 p-4 rounded">
                     <div className="flex justify-center">
                         <div className="h-[256px] w-[256px] mb-4 ">
-                            <MosaicTapestryV2 tapestry={props.tapestry} />
+                            {props.tapestry.cubes.length > 0 ? (
+                                <MosaicTapestryV2 tapestry={props.tapestry} />
+                            ) : (
+                                <div
+                                    className={clsx(
+                                        "h-full w-full",
+                                        "flex justify-center items-center",
+                                        "bg-slate-200/40 rounded-md shadow-md"
+                                    )}
+                                >
+                                    <div className="">
+                                        <div className="font-bold text-xl text-slate-300">
+                                            Empty Canvas
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </div>
                     <div>

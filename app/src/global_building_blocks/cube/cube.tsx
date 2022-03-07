@@ -13,7 +13,10 @@ import { standardMaterialGenerator } from "../../global_three/materials/metalic_
 import CubePiece from "./building_blocks/piece/piece";
 import _ from "underscore";
 import { ContactShadows } from "@react-three/drei";
-import { useNewCubeInfo } from "../../lib/studio/service_providers/studio_state_provider/studio_state_provider";
+import {
+    useNewCubeInfo,
+    useStudioState,
+} from "../../lib/studio/service_providers/studio_state_provider/studio_state_provider";
 import { invertTurn } from "../../global_architecture/cube_model/utils/utils";
 import useEventListener from "@use-it/event-listener";
 
@@ -24,8 +27,6 @@ const negY = new THREE.Vector3(0, -1, 0);
 const z = new THREE.Vector3(0, 0, 1);
 const negZ = new THREE.Vector3(0, 0, -1);
 
-const defaultTurnPeriod = 0.2;
-
 const initialCameraDirection = new THREE.Vector3(0, 0, 1);
 
 enum StickerSelectionState {
@@ -33,13 +34,8 @@ enum StickerSelectionState {
     SourceSelected,
 }
 
-interface CubeEditorProps extends GroupProps {
-    turnPeriod?: number;
-    // setAlgorithm?: (algo: CubeSyntaxTurn[]) => void;
-}
-
-export const CubeEditor: React.FC<CubeEditorProps> = (props) => {
-    const turnPeriod = props.turnPeriod || defaultTurnPeriod;
+export const CubeEditor: React.FC = (props) => {
+    const { turnPeriod } = useStudioState();
 
     const cubeModel = useMemo(() => new CubeModel(), []);
     const [_time, setTime] = useState<number>(0);
@@ -632,6 +628,7 @@ interface FixedCubeProps extends GroupProps {
     cubeModel: CubeModel;
     distanceToViewer: number;
     index?: number;
+    opacity?: number;
 }
 
 export const FixedCube: React.FC<FixedCubeProps> = (props) => {
@@ -653,6 +650,7 @@ export const FixedCube: React.FC<FixedCubeProps> = (props) => {
                         position={piece.position.toArray()}
                         rotation={[eA[0], eA[1], eA[2]]}
                         materialGenerator={standardMaterialGenerator}
+                        opacity={props.opacity}
                     />
                 );
             })}

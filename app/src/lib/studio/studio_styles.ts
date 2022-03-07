@@ -54,4 +54,5 @@ export const StudioStyles = {
         "cursor-pointer",
         "select-none"
     ),
+    studioTitle: clsx("font-bold", "text-slate-500"),
 };

@@ -1,50 +1,147 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
-import { useFrame } from "@react-three/fiber";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import useEventListener from "@use-it/event-listener";
 import { Vector3Tuple } from "three";
 import {
     CubeModel,
     CubeSyntaxTurn,
     CubeTapestryModel,
+    positionsEqual,
 } from "../../../../global_architecture/cube_model/cube_model";
 import { useForceRerender } from "../../../../global_utils/react";
 import { cubeSideLength } from "../../../../global_constants/cube_dimensions";
-import _ from "underscore";
+import _, { tap } from "underscore";
 import CubeTapestry from "../../../../global_building_blocks/cube_tapestry/cube_tapestry";
 import { FixedCube } from "../../../../global_building_blocks/cube/cube";
 import { euclideanDistance } from "../../../../global_architecture/cube_model/utils/utils";
 import { getFOVHeightWidthTan } from "../../../../global_three/utils/camera";
 import EmptyCanvasText from "../empty_canvas_text/empty_canvas_text";
+import {
+    STUDIO_EVENT,
+    useStudioEventHandler,
+} from "../../service_providers/studio_events/studio_event";
+import {
+    CanvasScreen,
+    useCanvasScreenInfo,
+    useNewCubeInfo,
+    useTapestryInfo,
+} from "../../service_providers/studio_state_provider/studio_state_provider";
+import { CANCELLED } from "dns";
 
 interface Props {
-    tapestry: CubeTapestryModel;
-    newCubeAlgo?: CubeSyntaxTurn[];
-    setNewCube: (position: Vector3Tuple) => void;
     loading: boolean;
 }
 
 const CubeCanvas: React.FC<Props> = (props) => {
+    const { canvasScreen, setCanvasScreen } = useCanvasScreenInfo();
     const cameraPosition = useRef<Vector3Tuple>([0, 0, 0]);
     const currentCubePosition = useRef<Vector3Tuple>([0, 0, 0]);
+
+    const { tapestry, setTapestry, addCubeToTapestry } = useTapestryInfo();
+    const { newCubeAlgo } = useNewCubeInfo();
+
+    const [newCubePosition, setNewCubePosition] = useState<Vector3Tuple>([
+        0, 0, 0,
+    ]);
+
+    useStudioEventHandler((event, _data) => {
+        switch (event) {
+            case STUDIO_EVENT.CONFIRM_ADD_CUBE: {
+                // TODO: Handle hooking this into Solana
+
+                const cube = new CubeModel();
+                cube.applyAlgoTurns(newCubeAlgo);
+
+                addCubeToTapestry({
+                    position: newCubePosition,
+                    cube,
+                });
+                setCanvasScreen(CanvasScreen.Default);
+
+                break;
+            }
+            case STUDIO_EVENT.CANCEL_CONFIRM_ADD_CUBE: {
+                setCanvasScreen(CanvasScreen.AddCube);
+
+                break;
+            }
+            case STUDIO_EVENT.CONFIRM_REMOVE_CUBE: {
+                // TODO: Handle the hooking this into the server and solana
+
+                setTapestry(
+                    new CubeTapestryModel(
+                        [...tapestry.cubes].filter(
+                            (c) => !_.isEqual(c.position, newCubePosition)
+                        )
+                    )
+                );
+                setCanvasScreen(CanvasScreen.Default);
+
+                break;
+            }
+            case STUDIO_EVENT.CANCEL_CONFIRM_REMOVE_CUBE: {
+                setCanvasScreen(CanvasScreen.Default);
+                break;
+            }
+        }
+    });
 
     const forceUpdate = useForceRerender();
 
     const cubeModel = useMemo(() => {
         const model = new CubeModel();
-        model.applyAlgoTurns(props.newCubeAlgo || []);
+        model.applyAlgoTurns(newCubeAlgo || []);
 
         return model;
-    }, [props.newCubeAlgo]);
+    }, [newCubeAlgo]);
 
     useEventListener("mousedown", (e: MouseEvent) => {
         if (e.shiftKey) {
-            props.setNewCube(currentCubePosition.current);
+            if (canvasScreen === CanvasScreen.AddCube) {
+                setNewCubePosition(currentCubePosition.current);
+                setCanvasScreen(CanvasScreen.ConfirmAddCube);
+            } else if (canvasScreen === CanvasScreen.RemoveCube) {
+                if (
+                    tapestry.cubes.some((c) =>
+                        _.isEqual(c.position, currentCubePosition.current)
+                    )
+                ) {
+                    setNewCubePosition(currentCubePosition.current);
+                    setCanvasScreen(CanvasScreen.ConfirmRemoveCube);
+                }
+            }
         }
     });
 
-    useFrame(({ camera, mouse }) => {
+    const [newCubeOpacity, setNewCubeOpacity] = useState<number>();
+    const newCubeStartingTime = useRef<number>(0);
+    const currTime = useRef<number>(0);
+
+    const showFlashingCube =
+        canvasScreen === CanvasScreen.ConfirmAddCube ||
+        canvasScreen === CanvasScreen.ConfirmRemoveCube;
+
+    useEffect(() => {
+        newCubeStartingTime.current = currTime.current;
+    }, [showFlashingCube]);
+
+    useFrame(({ camera, mouse, clock }) => {
         forceUpdate();
+
+        /* Handle cube opacity */
+        const time = clock.getElapsedTime();
+
+        currTime.current = time;
+        if (showFlashingCube) {
+            setNewCubeOpacity(
+                Math.cos(
+                    ((time - newCubeStartingTime.current) * Math.PI) / 1.5
+                ) ** 2
+            );
+        }
+
+        /* Handle cube placement in tapestry */
         const planeNormal = new THREE.Vector3(0, 0, 1);
         const planeOrigin = new THREE.Vector3(0, 0, 0);
         planeNormal.normalize();
@@ -100,22 +197,40 @@ const CubeCanvas: React.FC<Props> = (props) => {
 
         const cubeArray = cubePosition.toArray();
 
-        if (
-            !props.tapestry.cubes.some((c) => _.isEqual(c.position, cubeArray))
-        ) {
+        if (canvasScreen === CanvasScreen.AddCube) {
+            if (!tapestry.cubes.some((c) => _.isEqual(c.position, cubeArray))) {
+                currentCubePosition.current = cubeArray;
+            }
+        } else {
             currentCubePosition.current = cubeArray;
         }
     });
 
+    let finalTap = tapestry;
+
+    if (canvasScreen === CanvasScreen.RemoveCube) {
+        const newCubes = [...tapestry.cubes].filter(
+            (c) => !_.isEqual(c.position, currentCubePosition.current)
+        );
+
+        finalTap = new CubeTapestryModel(newCubes);
+    } else if (canvasScreen === CanvasScreen.ConfirmRemoveCube) {
+        finalTap = new CubeTapestryModel(
+            [...tapestry.cubes].filter(
+                (c) => !_.isEqual(c.position, newCubePosition)
+            )
+        );
+    }
+
     if (
         !props.loading &&
-        (props.tapestry.cubes.length > 0 || props.newCubeAlgo)
+        (tapestry.cubes.length > 0 || canvasScreen !== CanvasScreen.Default)
     ) {
         return (
             <>
                 <group>
-                    <CubeTapestry tapestry={props.tapestry} />
-                    {props.newCubeAlgo && (
+                    <CubeTapestry tapestry={finalTap} />
+                    {canvasScreen === CanvasScreen.AddCube && (
                         <>
                             <FixedCube
                                 cubeModel={cubeModel}
@@ -124,6 +239,20 @@ const CubeCanvas: React.FC<Props> = (props) => {
                                     currentCubePosition.current,
                                     cameraPosition.current
                                 )}
+                            />
+                        </>
+                    )}
+                    {(canvasScreen === CanvasScreen.ConfirmAddCube ||
+                        canvasScreen === CanvasScreen.ConfirmRemoveCube) && (
+                        <>
+                            <FixedCube
+                                cubeModel={cubeModel}
+                                position={newCubePosition}
+                                distanceToViewer={euclideanDistance(
+                                    currentCubePosition.current,
+                                    cameraPosition.current
+                                )}
+                                opacity={newCubeOpacity}
                             />
                         </>
                     )}

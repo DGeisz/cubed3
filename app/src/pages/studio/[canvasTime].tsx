@@ -17,6 +17,7 @@ import {
     StudioScreen,
     useNewCubeInfo,
     useStudioScreenInfo,
+    useStudioState,
     useTapestryInfo,
     withStudioState,
 } from "../../lib/studio/service_providers/studio_state_provider/studio_state_provider";
@@ -25,7 +26,6 @@ import { useRouter } from "next/router";
 import { useCanvasByTime } from "../../lib/studio/routes/canvasTime/api/queries";
 
 interface StudioProps {
-    cubePeriod: number;
     loading: boolean;
 }
 
@@ -39,8 +39,8 @@ const StudioInner: React.FC<StudioProps> = (props) => {
 
     const { studioScreen: screen } = useStudioScreenInfo();
     const { newCubeAlgo, setNewCubeAlgo } = useNewCubeInfo();
+    const { turnPeriod } = useStudioState();
 
-    const cameraRotated = useRef<boolean>(true);
     const lastRotation = useRef<number>(0);
 
     const controls = useRef<any>();
@@ -69,7 +69,6 @@ const StudioInner: React.FC<StudioProps> = (props) => {
 
                 canvasCameraPosition[2] = 50;
                 camera.lookAt(...cubePositionMean);
-                // cameraRotated.current = false;
                 lastRotation.current = elapsed;
             } else {
                 canvasCameraPosition = initCameraCanvasPosition;
@@ -83,41 +82,19 @@ const StudioInner: React.FC<StudioProps> = (props) => {
                     : initEmptyCanvasPosition
             );
 
-            // if (screen === StudioScreen.Canvas) {
-            //     // setTimeout(() => {
-            //     //     console.log("Here we are!");
-            //     //     camera.rotation.fromArray([0, 0, 0]);
-            //     // }, 1000);
-            // }
-
             cameraSet.current = screen;
         }
     });
+
+    console.log("this is turn period", turnPeriod);
 
     return (
         <>
             <ambientLight />
             <Suspense fallback={null}>
-                {screen === StudioScreen.Editor && (
-                    <CubeEditor turnPeriod={props.cubePeriod} />
-                )}
+                {screen === StudioScreen.Editor && <CubeEditor />}
                 {screen === StudioScreen.Canvas && (
-                    <CubeCanvas
-                        loading={props.loading}
-                        newCubeAlgo={newCubeAlgo}
-                        tapestry={tapestry}
-                        setNewCube={(position) => {
-                            const cube = new CubeModel();
-                            cube.applyAlgoTurns(newCubeAlgo || []);
-
-                            addCubeToTapestry({
-                                position,
-                                cube,
-                            });
-
-                            setNewCubeAlgo(undefined);
-                        }}
-                    />
+                    <CubeCanvas loading={props.loading} />
                 )}
             </Suspense>
             <OrbitControls ref={controls} />
@@ -148,8 +125,6 @@ const Studio: NextPage = () => {
 
     const { setStudioScreen, studioScreen } = useStudioScreenInfo();
     const { setTapestry } = useTapestryInfo();
-
-    const [cubePeriod, setCubePeriod] = useState<number>(0);
 
     useEffect(() => {
         if (serverCanvas && canvasTime > 0) {
@@ -182,13 +157,9 @@ const Studio: NextPage = () => {
                 }}
             >
                 <color attach="background" args={["white"]} />
-                <StudioInner cubePeriod={cubePeriod} loading={loading} />
+                <StudioInner loading={loading} />
             </ForwardCanvas>
-            <Sidebar
-                canvasTime={canvasTime}
-                switchScreens={fancySwitch}
-                setCubeEditorPeriod={setCubePeriod}
-            />
+            <Sidebar canvasTime={canvasTime} switchScreens={fancySwitch} />
             <div
                 className={clsx(
                     "absolute inset-0",
