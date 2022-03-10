@@ -28,7 +28,6 @@ interface Props {
 }
 
 const minPeriod = 0.1;
-const defaultPeriod = 0.2;
 const maxPeriod = 1;
 
 const Sidebar: React.FC<Props> = (props) => {
@@ -42,8 +41,12 @@ const Sidebar: React.FC<Props> = (props) => {
     const {
         data: canvas,
         loading: canvasLoading,
-        error,
+        refetch,
     } = useSolCanvas(props.canvasTime);
+
+    useEffect(() => {
+        refetch();
+    }, [tapestry.cubes.length]);
 
     const hasMoreCubes = !!canvas ? canvas.unusedCubes > 0 : true;
 
@@ -98,7 +101,10 @@ const Sidebar: React.FC<Props> = (props) => {
                                 <div className={StudioStyles.buttonContainer}>
                                     <div
                                         className={StudioStyles.studioButton}
-                                        onClick={props.switchScreens}
+                                        onClick={() => {
+                                            setNewCubeAlgo([]);
+                                            props.switchScreens();
+                                        }}
                                     >
                                         {hasMoreCubes
                                             ? "Add Cube"

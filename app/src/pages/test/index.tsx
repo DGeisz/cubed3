@@ -28,6 +28,8 @@ export interface CubePlacement {
 const TestPage: NextPage = () => {
     const { program, provider } = useProvider();
 
+    console.log("THis is program", program, provider);
+
     const [canvasTime, setCanvasTime] = useState<number>(0);
 
     const a = Buffer.from("hello", "utf-8");

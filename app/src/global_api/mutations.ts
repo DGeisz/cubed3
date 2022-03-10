@@ -3,8 +3,8 @@ import { WalletContextState } from "@solana/wallet-adapter-react";
 import axios from "axios";
 import { ServerCubePlacement } from "../global_architecture/cube_model/cube_model";
 import { placeCube, removeCube } from "../global_chain/chain_methods";
+import { BASE_URL } from "../global_networking/constants";
 import { Cubed } from "../global_types/cubed";
-import { BASE_URL } from "./constants";
 
 enum UpdateCanvasRes {
     Success,

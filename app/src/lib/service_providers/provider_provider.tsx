@@ -5,6 +5,8 @@ import { ConfirmOptions, PublicKey } from "@solana/web3.js";
 import { Wallet } from "@project-serum/anchor/dist/cjs/provider";
 import idl from "../../global_idl/idl.json";
 import { Cubed } from "../../global_types/cubed";
+import { useCanvasWallet } from "../studio/service_providers/studio_state_provider/studio_state_provider";
+import { join } from "path";
 
 // const programID = new PublicKey(idl.metadata.address);
 // const programID = new PublicKey("EiawDaRsHXKZEt3rJHRbpwPZeNhzxZTv37RxPZgjkUSJ");
@@ -20,7 +22,12 @@ const opts: ConfirmOptions = {
 };
 
 // @ts-ignore
-const ProviderContext = createContext<ContextType>();
+const ProviderContext = createContext<ContextType>({
+    // @ts-ignore
+    provider: {},
+    // @ts-ignore
+    program: {},
+});
 
 export function useProvider(): ContextType {
     return useContext(ProviderContext);
@@ -32,7 +39,7 @@ interface ProviderProps {
 
 export const ProviderProvider: React.FC<ProviderProps> = (props) => {
     const { connection } = useConnection();
-    const wallet = useWallet() as Wallet;
+    const wallet = useCanvasWallet() as Wallet;
 
     const finalOpts = props.opts || opts;
 

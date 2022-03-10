@@ -30,8 +30,6 @@ export function useFetch<T>(
             try {
                 const newData = await fetch();
 
-                console.log("newData", newData);
-
                 setData(newData);
             } catch (e) {
                 setError(e);

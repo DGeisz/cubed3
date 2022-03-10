@@ -1,4 +1,5 @@
 import { Canvas, Props } from "@react-three/fiber";
+import { useWallet, WalletContextState } from "@solana/wallet-adapter-react";
 import React, { useContext, useState } from "react";
 import { Vector3Tuple } from "three";
 import {
@@ -6,6 +7,7 @@ import {
     CubeSyntaxTurn,
     CubeTapestryModel,
 } from "../../../../global_architecture/cube_model/cube_model";
+import { ProviderProvider } from "../../../service_providers/provider_provider";
 
 export const DEFAULT_TURN_PERIOD = 0.3;
 
@@ -31,6 +33,8 @@ interface StudioStateContext {
     setNewCubeAlgo: (algo: CubeSyntaxTurn[]) => void;
     tapestry: CubeTapestryModel;
     setTapestry: (t: CubeTapestryModel) => void;
+    newCubePosition: Vector3Tuple;
+    setNewCubePosition: (p: Vector3Tuple) => void;
     turnPeriod: number;
     setPeriod: (p: number) => void;
     handleUndo: () => void;
@@ -46,6 +50,8 @@ export const StudioContext = React.createContext<StudioStateContext>({
     setNewCubeAlgo: () => {},
     tapestry: new CubeTapestryModel(),
     setTapestry: () => {},
+    newCubePosition: [0, 0, 0],
+    setNewCubePosition: () => {},
     turnPeriod: DEFAULT_TURN_PERIOD,
     setPeriod: () => {},
     handleUndo: () => {},
@@ -69,6 +75,10 @@ export function withStudioState<P>(Component: React.FC<P>): React.FC<P> {
 
         const [handleUndo, setHandleUndo] = useState<() => void>(() => {});
 
+        const [newCubePosition, setNewCubePosition] = useState<Vector3Tuple>([
+            0, 0, 0,
+        ]);
+
         return (
             <StudioContext.Provider
                 value={{
@@ -82,6 +92,8 @@ export function withStudioState<P>(Component: React.FC<P>): React.FC<P> {
                     setTapestry,
                     turnPeriod,
                     setPeriod,
+                    newCubePosition,
+                    setNewCubePosition,
                     handleUndo,
                     setHandleUndo,
                 }}
@@ -94,14 +106,52 @@ export function withStudioState<P>(Component: React.FC<P>): React.FC<P> {
 
 type CanvasProps = Props;
 
+interface CanvasWallet {
+    wallet: WalletContextState;
+}
+
+const CanvasWalletContext = React.createContext<CanvasWallet>({
+    // @ts-ignore
+    wallet: {},
+});
+
+export function useCanvasWallet(): WalletContextState {
+    const { wallet } = useContext(CanvasWalletContext);
+
+    return wallet;
+}
+
+interface CanvasWalletProviderProps {
+    wallet?: WalletContextState;
+}
+
+export const CanvasWalletProvider: React.FC<CanvasWalletProviderProps> = (
+    props
+) => {
+    const wallet = useWallet();
+
+    const finalWallet = props.wallet || wallet;
+
+    return (
+        <CanvasWalletContext.Provider value={{ wallet: finalWallet }}>
+            {props.children}
+        </CanvasWalletContext.Provider>
+    );
+};
+
 export const ForwardCanvas: React.FC<CanvasProps> = (props) => {
     const value = useContext(StudioContext);
+    const wallet = useCanvasWallet();
 
     return (
         <Canvas {...props}>
-            <StudioContext.Provider value={value}>
-                {props.children}
-            </StudioContext.Provider>
+            <CanvasWalletProvider wallet={wallet}>
+                <ProviderProvider>
+                    <StudioContext.Provider value={value}>
+                        {props.children}
+                    </StudioContext.Provider>
+                </ProviderProvider>
+            </CanvasWalletProvider>
         </Canvas>
     );
 };
@@ -110,6 +160,8 @@ export function useNewCubeInfo() {
     const {
         newCubeAlgo,
         setNewCubeAlgo,
+        newCubePosition,
+        setNewCubePosition,
         handleUndo: undo,
         setHandleUndo: su,
     } = useContext(StudioContext);
@@ -118,7 +170,14 @@ export function useNewCubeInfo() {
         su(() => handler);
     };
 
-    return { newCubeAlgo, setNewCubeAlgo, undo, setHandleUndo };
+    return {
+        newCubeAlgo,
+        setNewCubeAlgo,
+        undo,
+        setHandleUndo,
+        newCubePosition,
+        setNewCubePosition,
+    };
 }
 
 export function useStudioScreenInfo() {

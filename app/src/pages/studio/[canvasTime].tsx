@@ -7,14 +7,18 @@ import clsx from "clsx";
 import {
     CanvasCube,
     CubeModel,
+    CubeTapestryModel,
     serverCanvasToTapestry,
 } from "../../global_architecture/cube_model/cube_model";
 import { Vector3Tuple } from "three";
 import CubeCanvas from "../../lib/studio/sub_screens/cube_canvas/cube_canvas";
 import _ from "underscore";
 import {
+    CanvasScreen,
     ForwardCanvas,
     StudioScreen,
+    useCanvasScreenInfo,
+    useCanvasWallet,
     useNewCubeInfo,
     useStudioScreenInfo,
     useStudioState,
@@ -24,9 +28,16 @@ import {
 import Sidebar from "../../lib/studio/sub_screens/sidebar/sidebar";
 import { useRouter } from "next/router";
 import { useCanvasByTime } from "../../lib/studio/routes/canvasTime/api/queries";
+import {
+    STUDIO_EVENT,
+    useStudioEventHandler,
+} from "../../lib/studio/service_providers/studio_events/studio_event";
+import { updateCanvasEverywhere } from "../../global_api/mutations";
+import { useProvider } from "../../lib/service_providers/provider_provider";
 
 interface StudioProps {
     loading: boolean;
+    canvasTime: number;
 }
 
 const initCameraEditorPosition: Vector3Tuple = [5, 8, 15];
@@ -34,12 +45,12 @@ const initCameraCanvasPosition: Vector3Tuple = [0, 0, 50];
 const initEmptyCanvasPosition: Vector3Tuple = initCameraEditorPosition;
 
 const StudioInner: React.FC<StudioProps> = (props) => {
-    const cameraSet = useRef<StudioScreen>(StudioScreen.Editor);
-    const { tapestry, addCubeToTapestry } = useTapestryInfo();
+    const cameraSet = useRef<StudioScreen>(-1);
+    const lastCubes = useRef<number>(-1);
+    const { tapestry } = useTapestryInfo();
 
     const { studioScreen: screen } = useStudioScreenInfo();
-    const { newCubeAlgo, setNewCubeAlgo } = useNewCubeInfo();
-    const { turnPeriod } = useStudioState();
+    const { canvasScreen } = useCanvasScreenInfo();
 
     const lastRotation = useRef<number>(0);
 
@@ -48,7 +59,10 @@ const StudioInner: React.FC<StudioProps> = (props) => {
     useFrame(({ camera, clock }) => {
         const elapsed = clock.getElapsedTime();
 
-        if (cameraSet.current !== screen) {
+        if (
+            cameraSet.current !== screen ||
+            lastCubes.current !== tapestry.cubes.length
+        ) {
             let canvasCameraPosition: Vector3Tuple;
 
             if (tapestry.cubes.length > 0) {
@@ -77,25 +91,24 @@ const StudioInner: React.FC<StudioProps> = (props) => {
             camera.position.fromArray(
                 screen === StudioScreen.Editor
                     ? initCameraEditorPosition
-                    : tapestry.cubes.length > 0 || newCubeAlgo
+                    : tapestry.cubes.length > 0 ||
+                      canvasScreen === CanvasScreen.AddCube ||
+                      canvasScreen === CanvasScreen.ConfirmAddCube
                     ? initCameraCanvasPosition
                     : initEmptyCanvasPosition
             );
 
             cameraSet.current = screen;
+            lastCubes.current = tapestry.cubes.length;
         }
     });
-
-    console.log("this is turn period", turnPeriod);
 
     return (
         <>
             <ambientLight />
             <Suspense fallback={null}>
                 {screen === StudioScreen.Editor && <CubeEditor />}
-                {screen === StudioScreen.Canvas && (
-                    <CubeCanvas loading={props.loading} />
-                )}
+                {screen === StudioScreen.Canvas && <CubeCanvas {...props} />}
             </Suspense>
             <OrbitControls ref={controls} />
         </>
@@ -114,17 +127,88 @@ const Studio: NextPage = () => {
         canvasTime = parseInt(router.query.canvasTime);
     }
 
-    const {
-        data: serverCanvas,
-        loading,
-        error,
-        refetch,
-    } = useCanvasByTime(canvasTime);
+    const { data: serverCanvas, loading } = useCanvasByTime(canvasTime);
+
+    const { program, provider } = useProvider();
+    const wallet = useCanvasWallet();
+
+    const { tapestry, setTapestry, addCubeToTapestry } = useTapestryInfo();
+    const { setCanvasScreen } = useCanvasScreenInfo();
+    const { newCubeAlgo, newCubePosition } = useNewCubeInfo();
+
+    useStudioEventHandler((event, _data) => {
+        switch (event) {
+            case STUDIO_EVENT.CONFIRM_ADD_CUBE: {
+                (async () => {
+                    console.log("Starting to confirm");
+                    await updateCanvasEverywhere(
+                        provider,
+                        program,
+                        wallet,
+                        {
+                            created: true,
+                            algo: newCubeAlgo,
+                            x: newCubePosition[0],
+                            y: newCubePosition[1],
+                        },
+                        canvasTime
+                    );
+                    console.log("Ending confirm cube");
+
+                    const cube = new CubeModel();
+                    cube.applyAlgoTurns(newCubeAlgo);
+
+                    addCubeToTapestry({
+                        position: newCubePosition,
+                        cube,
+                    });
+                    setCanvasScreen(CanvasScreen.Default);
+                })();
+
+                break;
+            }
+            case STUDIO_EVENT.CANCEL_CONFIRM_ADD_CUBE: {
+                setCanvasScreen(CanvasScreen.AddCube);
+
+                break;
+            }
+            case STUDIO_EVENT.CONFIRM_REMOVE_CUBE: {
+                (async () => {
+                    await updateCanvasEverywhere(
+                        provider,
+                        program,
+                        wallet,
+                        {
+                            created: false,
+                            algo: [],
+                            x: newCubePosition[0],
+                            y: newCubePosition[1],
+                        },
+                        canvasTime
+                    );
+
+                    setTapestry(
+                        new CubeTapestryModel(
+                            [...tapestry.cubes].filter(
+                                (c) => !_.isEqual(c.position, newCubePosition)
+                            )
+                        )
+                    );
+                    setCanvasScreen(CanvasScreen.Default);
+                })();
+
+                break;
+            }
+            case STUDIO_EVENT.CANCEL_CONFIRM_REMOVE_CUBE: {
+                setCanvasScreen(CanvasScreen.Default);
+                break;
+            }
+        }
+    });
 
     const [dark, setDark] = useState<boolean>(false);
 
     const { setStudioScreen, studioScreen } = useStudioScreenInfo();
-    const { setTapestry } = useTapestryInfo();
 
     useEffect(() => {
         if (serverCanvas && canvasTime > 0) {
@@ -157,7 +241,7 @@ const Studio: NextPage = () => {
                 }}
             >
                 <color attach="background" args={["white"]} />
-                <StudioInner loading={loading} />
+                <StudioInner loading={loading} canvasTime={canvasTime} />
             </ForwardCanvas>
             <Sidebar canvasTime={canvasTime} switchScreens={fancySwitch} />
             <div

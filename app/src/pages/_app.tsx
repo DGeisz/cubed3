@@ -19,6 +19,7 @@ import {
 import { clusterApiUrl } from "@solana/web3.js";
 import { ProviderProvider } from "../lib/service_providers/provider_provider";
 import { withTutorial } from "../lib/service_providers/tutorial_provider";
+import { CanvasWalletProvider } from "../lib/studio/service_providers/studio_state_provider/studio_state_provider";
 
 require("@solana/wallet-adapter-react-ui/styles.css");
 
@@ -48,9 +49,11 @@ function MyApp({ Component, pageProps }: AppProps) {
         <ConnectionProvider endpoint={endpoint}>
             <WalletProvider wallets={wallets} autoConnect>
                 <WalletModalProvider>
-                    <ProviderProvider>
-                        <Component {...pageProps} />
-                    </ProviderProvider>
+                    <CanvasWalletProvider>
+                        <ProviderProvider>
+                            <Component {...pageProps} />
+                        </ProviderProvider>
+                    </CanvasWalletProvider>
                 </WalletModalProvider>
             </WalletProvider>
         </ConnectionProvider>

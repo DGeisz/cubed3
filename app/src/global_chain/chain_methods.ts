@@ -201,6 +201,8 @@ export async function placeCube(
         program.programId
     );
 
+    console.log("pub key", provider.wallet.publicKey.toString());
+
     await program.rpc.placeCube(canvas_bump, canvas_time, algo, xEn, yEn, {
         accounts: {
             artist: provider.wallet.publicKey,

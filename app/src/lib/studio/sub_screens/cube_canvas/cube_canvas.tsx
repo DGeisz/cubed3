@@ -24,13 +24,17 @@ import {
 import {
     CanvasScreen,
     useCanvasScreenInfo,
+    useCanvasWallet,
     useNewCubeInfo,
+    useStudioState,
     useTapestryInfo,
 } from "../../service_providers/studio_state_provider/studio_state_provider";
-import { CANCELLED } from "dns";
+import { useProvider } from "../../../service_providers/provider_provider";
+import { updateCanvasEverywhere } from "../../../../global_api/mutations";
 
 interface Props {
     loading: boolean;
+    canvasTime: number;
 }
 
 const CubeCanvas: React.FC<Props> = (props) => {
@@ -38,54 +42,9 @@ const CubeCanvas: React.FC<Props> = (props) => {
     const cameraPosition = useRef<Vector3Tuple>([0, 0, 0]);
     const currentCubePosition = useRef<Vector3Tuple>([0, 0, 0]);
 
-    const { tapestry, setTapestry, addCubeToTapestry } = useTapestryInfo();
-    const { newCubeAlgo } = useNewCubeInfo();
-
-    const [newCubePosition, setNewCubePosition] = useState<Vector3Tuple>([
-        0, 0, 0,
-    ]);
-
-    useStudioEventHandler((event, _data) => {
-        switch (event) {
-            case STUDIO_EVENT.CONFIRM_ADD_CUBE: {
-                // TODO: Handle hooking this into Solana
-
-                const cube = new CubeModel();
-                cube.applyAlgoTurns(newCubeAlgo);
-
-                addCubeToTapestry({
-                    position: newCubePosition,
-                    cube,
-                });
-                setCanvasScreen(CanvasScreen.Default);
-
-                break;
-            }
-            case STUDIO_EVENT.CANCEL_CONFIRM_ADD_CUBE: {
-                setCanvasScreen(CanvasScreen.AddCube);
-
-                break;
-            }
-            case STUDIO_EVENT.CONFIRM_REMOVE_CUBE: {
-                // TODO: Handle the hooking this into the server and solana
-
-                setTapestry(
-                    new CubeTapestryModel(
-                        [...tapestry.cubes].filter(
-                            (c) => !_.isEqual(c.position, newCubePosition)
-                        )
-                    )
-                );
-                setCanvasScreen(CanvasScreen.Default);
-
-                break;
-            }
-            case STUDIO_EVENT.CANCEL_CONFIRM_REMOVE_CUBE: {
-                setCanvasScreen(CanvasScreen.Default);
-                break;
-            }
-        }
-    });
+    const { tapestry } = useTapestryInfo();
+    const { newCubeAlgo, newCubePosition, setNewCubePosition } =
+        useNewCubeInfo();
 
     const forceUpdate = useForceRerender();
 
@@ -136,7 +95,7 @@ const CubeCanvas: React.FC<Props> = (props) => {
         if (showFlashingCube) {
             setNewCubeOpacity(
                 Math.cos(
-                    ((time - newCubeStartingTime.current) * Math.PI) / 1.5
+                    ((time - newCubeStartingTime.current) * Math.PI) / 1.4
                 ) ** 2
             );
         }
