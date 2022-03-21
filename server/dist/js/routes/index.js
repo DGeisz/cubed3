@@ -9,6 +9,7 @@ const update_canvas_1 = require("../handlers/update_canvas");
 exports.routes = (0, express_1.Router)();
 exports.routes.post("/buy_canvas", buy_canvas_1.buyCanvas);
 exports.routes.post("/get_canvas", buy_canvas_1.getCanvasRoute);
+exports.routes.post("/test_canvas_image", buy_canvas_1.testSaveImage);
 exports.routes.post("/queue_canvas_update", update_canvas_1.queueCanvasUpdate);
 exports.routes.post("/finalize_canvas_update", update_canvas_1.finalizeCanvasUpdate);
 /* Get Canvases */

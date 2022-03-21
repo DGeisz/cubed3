@@ -171,8 +171,6 @@ interface Props {
     tapestry: CubeTapestryModel;
 }
 
-const scale = 4;
-
 export const MosaicTapestryV2: React.FC<Props> = (props) => {
     const ref = useRef<HTMLDivElement>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -183,7 +181,7 @@ export const MosaicTapestryV2: React.FC<Props> = (props) => {
     const canvasWidth = width * 2;
 
     useEffect(() => {
-        if (canvasRef.current && canvasRef.current.getContext) {
+        if (canvasRef.current) {
             const canvas = canvasRef.current;
             const context = canvas.getContext("2d");
 

@@ -10,7 +10,6 @@ import {
 } from "./utils/utils";
 import { sha256 } from "@ethersproject/sha2";
 import * as anchor from "@project-serum/anchor";
-import { CubePlacement } from "../../pages/test";
 
 export interface ServerCubePlacement {
     created: boolean;
@@ -1273,6 +1272,13 @@ export class CubeModel {
             return [];
         }
     }
+}
+
+export interface CubePlacement {
+    created: boolean;
+    algo: number[];
+    x: number;
+    y: number;
 }
 
 export function serverCanvasToTapestry(

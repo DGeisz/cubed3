@@ -24,6 +24,8 @@ import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import { LandingStyles } from "../../../landing_styles";
 import { CUBE_PRICE } from "../../../../global_chain/chain_constants";
 import { DotLoader } from "react-spinners";
+import { BASE_URL } from "../../../../global_networking/constants";
+import axios from "axios";
 
 interface Props {
     canvasTime: number;
@@ -88,6 +90,18 @@ const Sidebar: React.FC<Props> = (props) => {
                     <WalletMultiButton
                         className={clsx(LandingStyles.WalletButton)}
                     />
+                </div>
+                <div className={StudioStyles.buttonContainer}>
+                    <div
+                        className={StudioStyles.studioButton}
+                        onClick={async () => {
+                            await axios.post(`${BASE_URL}/test_canvas_image`, {
+                                time: props.canvasTime,
+                            });
+                        }}
+                    >
+                        Test Image
+                    </div>
                 </div>
                 <div
                     className={clsx(

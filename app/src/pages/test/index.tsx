@@ -15,15 +15,9 @@ import {
     DEFAULT_COLLECTION_NAME,
 } from "../../global_chain/chain_constants";
 import { useWallet } from "@solana/wallet-adapter-react";
+import { CubePlacement } from "../../global_architecture/cube_model/cube_model";
 
 const BASE_URL = "http://localhost:4000";
-
-export interface CubePlacement {
-    created: boolean;
-    algo: number[];
-    x: number;
-    y: number;
-}
 
 const TestPage: NextPage = () => {
     const { program, provider } = useProvider();

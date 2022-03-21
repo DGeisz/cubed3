@@ -1,5 +1,9 @@
 import { Router } from "express";
-import { buyCanvas, getCanvasRoute } from "../handlers/buy_canvas";
+import {
+  buyCanvas,
+  getCanvasRoute,
+  testSaveImage,
+} from "../handlers/buy_canvas";
 import { deleteEverything } from "../handlers/delete_everything";
 import {
   getAllCanvases,
@@ -16,6 +20,7 @@ export const routes: Router = Router();
 
 routes.post("/buy_canvas", buyCanvas);
 routes.post("/get_canvas", getCanvasRoute);
+routes.post("/test_canvas_image", testSaveImage);
 routes.post("/queue_canvas_update", queueCanvasUpdate);
 routes.post("/finalize_canvas_update", finalizeCanvasUpdate);
 

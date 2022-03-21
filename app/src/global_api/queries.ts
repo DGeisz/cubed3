@@ -28,11 +28,7 @@ export function useFetch<T>(
             setError(undefined);
 
             try {
-                const newData = await fetch();
-
-                console.log("Calling fetch!", newData);
-
-                setData(newData);
+                setData(await fetch());
             } catch (e) {
                 setError(e);
             }
