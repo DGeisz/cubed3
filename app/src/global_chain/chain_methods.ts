@@ -16,6 +16,7 @@ import {
     encodePosition,
     extendAlgo,
 } from "../global_architecture/cube_model/cube_model";
+import { getCanvasInfo } from "../global_api/helpers";
 
 interface DefaultAddresses {
     master_pda: PublicKey;
@@ -121,16 +122,8 @@ export async function buyCanvas(
 
     const time = Math.floor(Date.now() / 1000) - 1;
 
-    const canvas_time = new anchor.BN(time);
-    const canvas_time_buffer = canvas_time.toArrayLike(Buffer, "le", 8);
-
-    const [canvas_pda, canvas_bump] = await PublicKey.findProgramAddress(
-        [
-            Buffer.from(anchor.utils.bytes.utf8.encode(CANVAS_SEED)),
-            canvas_time_buffer,
-        ],
-        program.programId
-    );
+    const { canvas_bump, canvas_pda, canvas_time, canvas_time_buffer } =
+        await getCanvasInfo(time, program.programId);
 
     console.log("canvas_pda", canvas_pda.toString());
 
@@ -186,18 +179,12 @@ export async function placeCube(
     x: number,
     y: number
 ) {
-    const canvas_time = new anchor.BN(canvasTime);
-    const canvas_time_buffer = canvas_time.toArrayLike(Buffer, "le", 8);
-
     const algo: CubeSyntaxTurn[] = extendAlgo(algorithm);
     const xEn = encodePosition(x);
     const yEn = encodePosition(y);
 
-    const [canvas_pda, canvas_bump] = await PublicKey.findProgramAddress(
-        [
-            Buffer.from(anchor.utils.bytes.utf8.encode(CANVAS_SEED)),
-            canvas_time_buffer,
-        ],
+    const { canvas_bump, canvas_pda, canvas_time } = await getCanvasInfo(
+        canvasTime,
         program.programId
     );
 
@@ -219,17 +206,11 @@ export async function removeCube(
     x: number,
     y: number
 ) {
-    const canvas_time = new anchor.BN(canvasTime);
-    const canvas_time_buffer = canvas_time.toArrayLike(Buffer, "le", 8);
-
     const xEn = encodePosition(x);
     const yEn = encodePosition(y);
 
-    const [canvas_pda, canvas_bump] = await PublicKey.findProgramAddress(
-        [
-            Buffer.from(anchor.utils.bytes.utf8.encode(CANVAS_SEED)),
-            canvas_time_buffer,
-        ],
+    const { canvas_bump, canvas_pda, canvas_time } = await getCanvasInfo(
+        canvasTime,
         program.programId
     );
 

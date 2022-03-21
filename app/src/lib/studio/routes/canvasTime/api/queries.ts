@@ -4,10 +4,9 @@ import {
     usePostRequest,
 } from "../../../../../global_api/queries";
 import { ServerCanvas } from "../../../../../global_architecture/cube_model/cube_model";
-import * as anchor from "@project-serum/anchor";
-import { PublicKey } from "@solana/web3.js";
-import { CANVAS_SEED } from "../../../../../global_chain/chain_constants";
 import { useProvider } from "../../../../service_providers/provider_provider";
+import { getCanvasInfo } from "../../../../../global_api/helpers";
+import { useEffect } from "react";
 
 export function useCanvasByTime(time: number): FetchResponse<ServerCanvas> {
     return usePostRequest(
@@ -19,21 +18,52 @@ export function useCanvasByTime(time: number): FetchResponse<ServerCanvas> {
     );
 }
 
+type RefetchId = number;
+
+class SolCanvasDirectory {
+    refetchForId: Map<RefetchId, () => void> = new Map();
+
+    addRefetch = (refetch: () => void): RefetchId => {
+        const id = this._genId();
+
+        this.refetchForId.set(id, refetch);
+
+        return id;
+    };
+
+    removeId = (id: RefetchId) => {
+        this.refetchForId.delete(id);
+    };
+
+    refetchAll = () => {
+        console.log("Calling refetch all!", this.refetchForId.values());
+
+        for (const refetch of this.refetchForId.values()) {
+            refetch();
+        }
+    };
+
+    private _genId = () => Math.random();
+}
+
+const solCanvasDirectory = new SolCanvasDirectory();
+
 export function useSolCanvas(time: number) {
     const { program } = useProvider();
 
-    return useFetch(async () => {
-        const canvas_time_bn = new anchor.BN(time);
-        const canvas_time_buffer = canvas_time_bn.toArrayLike(Buffer, "le", 8);
-
-        const [canvas_pda] = await PublicKey.findProgramAddress(
-            [
-                Buffer.from(anchor.utils.bytes.utf8.encode(CANVAS_SEED)),
-                canvas_time_buffer,
-            ],
-            program.programId
-        );
+    const fetch = useFetch(async () => {
+        const { canvas_pda } = await getCanvasInfo(time, program.programId);
 
         return await program.account.cubedCanvas.fetch(canvas_pda);
     }, [time, program]);
+
+    useEffect(() => {
+        const id = solCanvasDirectory.addRefetch(fetch.refetch);
+
+        return () => {
+            solCanvasDirectory.removeId(id);
+        };
+    }, [time]);
+
+    return { ...fetch, refetch: solCanvasDirectory.refetchAll };
 }

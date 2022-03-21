@@ -30,6 +30,8 @@ export function useFetch<T>(
             try {
                 const newData = await fetch();
 
+                console.log("Calling fetch!", newData);
+
                 setData(newData);
             } catch (e) {
                 setError(e);
@@ -38,7 +40,7 @@ export function useFetch<T>(
         })();
     }, [fetchIndex, ...deps]);
 
-    const refetch = () => setFetchIndex(fetchIndex + 1);
+    const refetch = () => setFetchIndex((i) => i + 1);
 
     return {
         data,

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import clsx from "clsx";
 import { StudioStyles } from "../../studio_styles";
 import { AiFillHome } from "react-icons/ai";
@@ -15,12 +15,15 @@ import {
 } from "../../service_providers/studio_state_provider/studio_state_provider";
 import Link from "next/link";
 import { MosaicTapestryV2 } from "../../../../global_building_blocks/mosaic_tapestry/mosaic_tapestry";
-import { tap } from "underscore";
 import { useSolCanvas } from "../../routes/canvasTime/api/queries";
 import {
     studioEventSystem,
     STUDIO_EVENT,
 } from "../../service_providers/studio_events/studio_event";
+import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
+import { LandingStyles } from "../../../landing_styles";
+import { CUBE_PRICE } from "../../../../global_chain/chain_constants";
+import { DotLoader } from "react-spinners";
 
 interface Props {
     canvasTime: number;
@@ -30,6 +33,13 @@ interface Props {
 const minPeriod = 0.1;
 const maxPeriod = 1;
 
+function showSidebarMosaic(
+    numCubes: number,
+    canvasScreen: CanvasScreen
+): boolean {
+    return numCubes > 0 && canvasScreen === CanvasScreen.Default;
+}
+
 const Sidebar: React.FC<Props> = (props) => {
     const { newCubeAlgo, undo, setNewCubeAlgo } = useNewCubeInfo();
     const { studioScreen } = useStudioScreenInfo();
@@ -37,6 +47,8 @@ const Sidebar: React.FC<Props> = (props) => {
     const { tapestry } = useTapestryInfo();
 
     const { turnPeriod, setPeriod } = useStudioState();
+
+    const [loading, setLoading] = useState<boolean>(false);
 
     const {
         data: canvas,
@@ -50,6 +62,16 @@ const Sidebar: React.FC<Props> = (props) => {
 
     const hasMoreCubes = !!canvas ? canvas.unusedCubes > 0 : true;
 
+    /* Handle getting more cubes */
+    const [numMoreCubes, setNumMoreCubes] = useState<number>();
+
+    useEffect(() => {
+        if (canvasScreen === CanvasScreen.MoreCubes) {
+            setNumMoreCubes(undefined);
+        }
+        setLoading(false);
+    }, [canvasScreen]);
+
     return (
         <>
             <div
@@ -62,9 +84,15 @@ const Sidebar: React.FC<Props> = (props) => {
                     "flex flex-col"
                 )}
             >
+                <div className={clsx("flex justify-center items-center mb-4")}>
+                    <WalletMultiButton
+                        className={clsx(LandingStyles.WalletButton)}
+                    />
+                </div>
                 <div
                     className={clsx(
-                        "flex flex-row border-b border-solid border-gray-200",
+                        "flex flex-row",
+                        "border-b border-solid border-gray-200",
                         "pb-2 mb-4 "
                     )}
                 >
@@ -95,192 +123,351 @@ const Sidebar: React.FC<Props> = (props) => {
                 </div>
                 {/* This is the main body of the sidebar */}
                 <div className="flex flex-grow flex-col">
-                    {studioScreen === StudioScreen.Canvas &&
-                        (canvasScreen === CanvasScreen.Default ? (
-                            <div className="flex flex-col">
-                                <div className={StudioStyles.buttonContainer}>
+                    {studioScreen === StudioScreen.Canvas && (
+                        <>
+                            {canvasScreen === CanvasScreen.Default ? (
+                                <div className={clsx("flex flex-col")}>
                                     <div
-                                        className={StudioStyles.studioButton}
-                                        onClick={() => {
-                                            setNewCubeAlgo([]);
-                                            props.switchScreens();
-                                        }}
+                                        className={StudioStyles.buttonContainer}
                                     >
-                                        {hasMoreCubes
-                                            ? "Add Cube"
-                                            : "Get More Cubes!"}
-                                    </div>
-                                </div>
-                                {tapestry.cubes.length > 0 && (
-                                    <>
                                         <div
                                             className={
-                                                StudioStyles.buttonContainer
+                                                hasMoreCubes
+                                                    ? StudioStyles.studioButton
+                                                    : StudioStyles.studioButtonDisabled
                                             }
+                                            onClick={() => {
+                                                if (hasMoreCubes) {
+                                                    setNewCubeAlgo([]);
+                                                    props.switchScreens();
+                                                }
+                                            }}
                                         >
+                                            {hasMoreCubes
+                                                ? "Add Cube"
+                                                : "Need More Cubes!"}
+                                        </div>
+                                    </div>
+                                    {tapestry.cubes.length > 0 && (
+                                        <>
                                             <div
                                                 className={
-                                                    StudioStyles.studioButtonCancel
+                                                    StudioStyles.buttonContainer
                                                 }
-                                                onClick={() => {
-                                                    setCanvasScreen(
-                                                        CanvasScreen.RemoveCube
-                                                    );
-                                                }}
                                             >
-                                                Remove Cube
+                                                <div
+                                                    className={
+                                                        StudioStyles.studioButtonCancel
+                                                    }
+                                                    onClick={() => {
+                                                        setCanvasScreen(
+                                                            CanvasScreen.RemoveCube
+                                                        );
+                                                    }}
+                                                >
+                                                    Remove Cube
+                                                </div>
+                                            </div>
+                                        </>
+                                    )}
+                                </div>
+                            ) : canvasScreen === CanvasScreen.AddCube ? (
+                                <div className={clsx("flex flex-col")}>
+                                    <div
+                                        className={clsx(
+                                            "flex items-center flex-col text-center",
+                                            "px-4 mb-4",
+                                            "font-semibold",
+                                            "text-slate-400 select-none"
+                                        )}
+                                    >
+                                        Hold "Shift" and click to place cube
+                                    </div>
+                                    <div
+                                        className={StudioStyles.buttonContainer}
+                                    >
+                                        <div
+                                            className={
+                                                StudioStyles.studioButtonCancel
+                                            }
+                                            onClick={() =>
+                                                setCanvasScreen(
+                                                    CanvasScreen.Default
+                                                )
+                                            }
+                                        >
+                                            Cancel
+                                        </div>
+                                    </div>
+                                </div>
+                            ) : canvasScreen === CanvasScreen.RemoveCube ? (
+                                <div className={clsx("flex flex-col")}>
+                                    <div
+                                        className={clsx(
+                                            "flex items-center flex-col text-center",
+                                            "px-4 mb-4",
+                                            "font-semibold",
+                                            "text-slate-400 select-none"
+                                        )}
+                                    >
+                                        Hold "Shift" and click to remove cube
+                                    </div>
+                                    <div
+                                        className={StudioStyles.buttonContainer}
+                                    >
+                                        <div
+                                            className={
+                                                StudioStyles.studioButtonCancel
+                                            }
+                                            onClick={() =>
+                                                setCanvasScreen(
+                                                    CanvasScreen.Default
+                                                )
+                                            }
+                                        >
+                                            Cancel
+                                        </div>
+                                    </div>
+                                </div>
+                            ) : canvasScreen === CanvasScreen.ConfirmAddCube ? (
+                                <div className="flex flex-col">
+                                    <div
+                                        className={StudioStyles.buttonContainer}
+                                    >
+                                        <div
+                                            className={
+                                                StudioStyles.studioButton
+                                            }
+                                            onClick={() =>
+                                                studioEventSystem.emit(
+                                                    STUDIO_EVENT.CONFIRM_ADD_CUBE
+                                                )
+                                            }
+                                        >
+                                            Confirm Cube
+                                        </div>
+                                    </div>
+                                    <div
+                                        className={StudioStyles.buttonContainer}
+                                    >
+                                        <div
+                                            className={
+                                                StudioStyles.studioButtonCancel
+                                            }
+                                            onClick={() => {
+                                                studioEventSystem.emit(
+                                                    STUDIO_EVENT.CANCEL_CONFIRM_ADD_CUBE
+                                                );
+                                            }}
+                                        >
+                                            Cancel
+                                        </div>
+                                    </div>
+                                </div>
+                            ) : canvasScreen ===
+                              CanvasScreen.ConfirmRemoveCube ? (
+                                <div className="flex flex-col">
+                                    <div
+                                        className={clsx(
+                                            StudioStyles.studioTitle,
+                                            "flex text-center mb-4"
+                                        )}
+                                    >
+                                        Are you sure you want to remove this
+                                        cube? (You can't undo this)
+                                    </div>
+                                    <div
+                                        className={StudioStyles.buttonContainer}
+                                    >
+                                        <div
+                                            className={
+                                                StudioStyles.studioButton
+                                            }
+                                            onClick={() =>
+                                                studioEventSystem.emit(
+                                                    STUDIO_EVENT.CONFIRM_REMOVE_CUBE
+                                                )
+                                            }
+                                        >
+                                            Confirm
+                                        </div>
+                                    </div>
+                                    <div
+                                        className={StudioStyles.buttonContainer}
+                                    >
+                                        <div
+                                            className={
+                                                StudioStyles.studioButtonCancel
+                                            }
+                                            onClick={() => {
+                                                studioEventSystem.emit(
+                                                    STUDIO_EVENT.CANCEL_CONFIRM_REMOVE_CUBE
+                                                );
+                                            }}
+                                        >
+                                            Cancel
+                                        </div>
+                                    </div>
+                                </div>
+                            ) : canvasScreen === CanvasScreen.MoreCubes ? (
+                                <div className="flex flex-col">
+                                    <div
+                                        className={clsx(
+                                            "font-bold",
+                                            "text-cyan-500"
+                                        )}
+                                    >
+                                        Grab more cubes
+                                    </div>
+                                    <div
+                                        className={clsx(
+                                            "mt-4",
+                                            "border-solid border-b border-gray-200 ",
+                                            "overflow-hidden"
+                                        )}
+                                    >
+                                        <input
+                                            value={numMoreCubes}
+                                            onChange={(e) => {
+                                                e.preventDefault();
+
+                                                setNumMoreCubes(
+                                                    parseInt(
+                                                        e.target.value.replace(
+                                                            /\D/g,
+                                                            ""
+                                                        )
+                                                    )
+                                                );
+                                            }}
+                                            autoFocus
+                                            type={"number"}
+                                            placeholder="How many cubes?"
+                                            className={clsx(
+                                                "flex flex-1",
+                                                "text-xl font-medium placeholder:text-slate-300"
+                                            )}
+                                        />
+                                    </div>
+                                    <div
+                                        className={clsx(
+                                            "mt-1",
+                                            "font-semibold",
+                                            "text-slate-500"
+                                        )}
+                                    >
+                                        Cost:{" "}
+                                        <span className={clsx("text-cyan-600")}>
+                                            ◎{(numMoreCubes || 0) * CUBE_PRICE}
+                                        </span>
+                                    </div>
+                                    <div
+                                        className={clsx(
+                                            "flex flex-col justify-center",
+                                            "mt-8"
+                                        )}
+                                    >
+                                        {!loading ? (
+                                            <>
+                                                <div
+                                                    className={
+                                                        StudioStyles.buttonContainer
+                                                    }
+                                                >
+                                                    <div
+                                                        className={
+                                                            numMoreCubes
+                                                                ? StudioStyles.studioButton
+                                                                : StudioStyles.studioButtonDisabled
+                                                        }
+                                                        onClick={() => {
+                                                            studioEventSystem.emit(
+                                                                STUDIO_EVENT.GET_MORE_CUBES,
+                                                                numMoreCubes
+                                                            );
+                                                            setLoading(true);
+                                                        }}
+                                                    >
+                                                        Confirm
+                                                    </div>
+                                                </div>
+                                                <div
+                                                    className={
+                                                        StudioStyles.buttonContainer
+                                                    }
+                                                    onClick={() =>
+                                                        setCanvasScreen(
+                                                            CanvasScreen.Default
+                                                        )
+                                                    }
+                                                >
+                                                    <div
+                                                        className={
+                                                            StudioStyles.studioButtonCancel
+                                                        }
+                                                    >
+                                                        Cancel
+                                                    </div>
+                                                </div>
+                                            </>
+                                        ) : (
+                                            <div className="flex justify-center items-center">
+                                                <DotLoader color="#00bcd4" />
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            ) : null}
+                            {showSidebarMosaic(
+                                tapestry.cubes.length,
+                                canvasScreen
+                            ) && (
+                                <>
+                                    <div className="flex justify-center mb-6">
+                                        <div className="bg-slate-100 px-4 pb-2 pt-0 mt-6 rounded-md shadow-md flex flex-col items-center">
+                                            <div className="text-center py-2 font-bold text-lg text-slate-400 select-none">
+                                                Mosaic Image
+                                            </div>
+                                            <div
+                                                className={clsx(
+                                                    "border-b border-solid border-gray-300",
+                                                    "mb-4"
+                                                )}
+                                            >
+                                                {tapestry.cubes.length === 1 ? (
+                                                    <div className="h-[100px] w-[100px]">
+                                                        <MosaicTapestryV2
+                                                            tapestry={tapestry}
+                                                        />
+                                                    </div>
+                                                ) : (
+                                                    <div className="h-[150px] w-[150px]">
+                                                        <MosaicTapestryV2
+                                                            tapestry={tapestry}
+                                                        />
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <div
+                                                className={
+                                                    StudioStyles.buttonContainer
+                                                }
+                                            >
+                                                <div
+                                                    className={
+                                                        StudioStyles.studioButton
+                                                    }
+                                                >
+                                                    Finish Mosaic
+                                                </div>
                                             </div>
                                         </div>
-                                    </>
-                                )}
-                            </div>
-                        ) : canvasScreen === CanvasScreen.AddCube ? (
-                            <div className={clsx("flex flex-col")}>
-                                <div
-                                    className={clsx(
-                                        "flex items-center flex-col text-center",
-                                        "px-4 mb-4",
-                                        "font-semibold",
-                                        "text-slate-400 select-none"
-                                    )}
-                                >
-                                    Hold "Shift" and click to place cube
-                                </div>
-                                <div className={StudioStyles.buttonContainer}>
-                                    <div
-                                        className={
-                                            StudioStyles.studioButtonCancel
-                                        }
-                                        onClick={() =>
-                                            setCanvasScreen(
-                                                CanvasScreen.Default
-                                            )
-                                        }
-                                    >
-                                        Cancel
                                     </div>
-                                </div>
-                            </div>
-                        ) : canvasScreen === CanvasScreen.RemoveCube ? (
-                            <div className={clsx("flex flex-col")}>
-                                <div
-                                    className={clsx(
-                                        "flex items-center flex-col text-center",
-                                        "px-4 mb-4",
-                                        "font-semibold",
-                                        "text-slate-400 select-none"
-                                    )}
-                                >
-                                    Hold "Shift" and click to remove cube
-                                </div>
-                                <div className={StudioStyles.buttonContainer}>
-                                    <div
-                                        className={
-                                            StudioStyles.studioButtonCancel
-                                        }
-                                        onClick={() =>
-                                            setCanvasScreen(
-                                                CanvasScreen.Default
-                                            )
-                                        }
-                                    >
-                                        Cancel
-                                    </div>
-                                </div>
-                            </div>
-                        ) : canvasScreen === CanvasScreen.ConfirmAddCube ? (
-                            <div className="flex flex-col">
-                                <div className={StudioStyles.buttonContainer}>
-                                    <div
-                                        className={StudioStyles.studioButton}
-                                        onClick={() =>
-                                            studioEventSystem.emit(
-                                                STUDIO_EVENT.CONFIRM_ADD_CUBE
-                                            )
-                                        }
-                                    >
-                                        Confirm Cube
-                                    </div>
-                                </div>
-                                <div className={StudioStyles.buttonContainer}>
-                                    <div
-                                        className={
-                                            StudioStyles.studioButtonCancel
-                                        }
-                                        onClick={() => {
-                                            studioEventSystem.emit(
-                                                STUDIO_EVENT.CANCEL_CONFIRM_ADD_CUBE
-                                            );
-                                        }}
-                                    >
-                                        Cancel
-                                    </div>
-                                </div>
-                            </div>
-                        ) : canvasScreen === CanvasScreen.ConfirmRemoveCube ? (
-                            <div className="flex flex-col">
-                                <div
-                                    className={clsx(
-                                        StudioStyles.studioTitle,
-                                        "flex text-center mb-4"
-                                    )}
-                                >
-                                    Are you sure you want to remove this cube?
-                                    (You can't undo this)
-                                </div>
-                                <div className={StudioStyles.buttonContainer}>
-                                    <div
-                                        className={StudioStyles.studioButton}
-                                        onClick={() =>
-                                            studioEventSystem.emit(
-                                                STUDIO_EVENT.CONFIRM_REMOVE_CUBE
-                                            )
-                                        }
-                                    >
-                                        Confirm
-                                    </div>
-                                </div>
-                                <div className={StudioStyles.buttonContainer}>
-                                    <div
-                                        className={
-                                            StudioStyles.studioButtonCancel
-                                        }
-                                        onClick={() => {
-                                            studioEventSystem.emit(
-                                                STUDIO_EVENT.CANCEL_CONFIRM_REMOVE_CUBE
-                                            );
-                                        }}
-                                    >
-                                        Cancel
-                                    </div>
-                                </div>
-                            </div>
-                        ) : null)}
-
-                    {tapestry.cubes.length > 0 && (
-                        <>
-                            <div className="flex justify-center mt-8">
-                                <div className="bg-slate-100 p-4 pt-0 rounded-md shadow-md flex flex-col items-center">
-                                    <div className="text-center py-2 font-bold text-lg text-slate-400 select-none">
-                                        Mosaic Image
-                                    </div>
-                                    {tapestry.cubes.length === 1 ? (
-                                        <div className="h-[100px] w-[100px]">
-                                            <MosaicTapestryV2
-                                                tapestry={tapestry}
-                                            />
-                                        </div>
-                                    ) : (
-                                        <div className="h-[150px] w-[150px]">
-                                            <MosaicTapestryV2
-                                                tapestry={tapestry}
-                                            />
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
+                                </>
+                            )}
                         </>
                     )}
+
                     {studioScreen === StudioScreen.Editor && (
                         <div className="flex flex-col flex-grow">
                             <div className={StudioStyles.categoryContainer}>
@@ -393,6 +580,19 @@ const Sidebar: React.FC<Props> = (props) => {
                                     : canvas?.unusedCubes}
                             </div>
                         </div>
+
+                        {canvasScreen !== CanvasScreen.MoreCubes && (
+                            <div className={StudioStyles.buttonContainer}>
+                                <div
+                                    className={StudioStyles.studioButton}
+                                    onClick={() =>
+                                        setCanvasScreen(CanvasScreen.MoreCubes)
+                                    }
+                                >
+                                    Grab More Cubes!
+                                </div>
+                            </div>
+                        )}
                     </div>
                 )}
             </div>

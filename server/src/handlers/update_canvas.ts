@@ -22,8 +22,6 @@ export async function finalizeCanvasUpdate(
       return res.status(400).send();
     }
 
-    console.log("prior", mongoCanvas.intendedCubes);
-
     /* Ok, now we want to check that the hash of the intended cube placements
     matches the current hash of the canvas */
     const canvasHash = getCanvasHashFromPlacements(
@@ -39,12 +37,6 @@ export async function finalizeCanvasUpdate(
         lastHash: canvas.lastHash,
       });
     }
-
-    console.log(
-      "placements",
-      mongoCanvas.finalCubes,
-      mongoCanvas.intendedCubes
-    );
 
     /* If we're here, the hashes match up, so we can finalize the cube placement order */
     mongoCanvas.finalCubes = [...mongoCanvas.intendedCubes];

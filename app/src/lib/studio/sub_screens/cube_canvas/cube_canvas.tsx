@@ -1,36 +1,26 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
-import { Canvas, useFrame, useThree } from "@react-three/fiber";
+import { useFrame } from "@react-three/fiber";
 import useEventListener from "@use-it/event-listener";
 import { Vector3Tuple } from "three";
 import {
     CubeModel,
-    CubeSyntaxTurn,
     CubeTapestryModel,
-    positionsEqual,
 } from "../../../../global_architecture/cube_model/cube_model";
 import { useForceRerender } from "../../../../global_utils/react";
 import { cubeSideLength } from "../../../../global_constants/cube_dimensions";
-import _, { tap } from "underscore";
+import _ from "underscore";
 import CubeTapestry from "../../../../global_building_blocks/cube_tapestry/cube_tapestry";
 import { FixedCube } from "../../../../global_building_blocks/cube/cube";
 import { euclideanDistance } from "../../../../global_architecture/cube_model/utils/utils";
 import { getFOVHeightWidthTan } from "../../../../global_three/utils/camera";
 import EmptyCanvasText from "../empty_canvas_text/empty_canvas_text";
 import {
-    STUDIO_EVENT,
-    useStudioEventHandler,
-} from "../../service_providers/studio_events/studio_event";
-import {
     CanvasScreen,
     useCanvasScreenInfo,
-    useCanvasWallet,
     useNewCubeInfo,
-    useStudioState,
     useTapestryInfo,
 } from "../../service_providers/studio_state_provider/studio_state_provider";
-import { useProvider } from "../../../service_providers/provider_provider";
-import { updateCanvasEverywhere } from "../../../../global_api/mutations";
 
 interface Props {
     loading: boolean;

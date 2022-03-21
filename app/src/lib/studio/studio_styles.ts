@@ -16,7 +16,7 @@ export const StudioStyles = {
         "from-cyan-600 to-green-600",
         "select-none"
     ),
-    categoryStat: clsx("text-4xl", "text-green-900", "select-none"),
+    categoryStat: clsx("text-3xl", "text-green-900", "select-none"),
     categoryText: clsx("text-xl", "text-green-900", "select-none"),
     categoryTextNone: clsx("text-xl", "text-gray-400", "select-none"),
     buttonContainer: clsx(

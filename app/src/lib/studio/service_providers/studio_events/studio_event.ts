@@ -5,6 +5,7 @@ export enum STUDIO_EVENT {
     CANCEL_CONFIRM_ADD_CUBE,
     CONFIRM_REMOVE_CUBE,
     CANCEL_CONFIRM_REMOVE_CUBE,
+    GET_MORE_CUBES,
 }
 
 type EventHandler = (event: STUDIO_EVENT, data?: any) => void;

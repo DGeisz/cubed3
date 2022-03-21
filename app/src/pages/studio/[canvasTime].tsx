@@ -21,19 +21,24 @@ import {
     useCanvasWallet,
     useNewCubeInfo,
     useStudioScreenInfo,
-    useStudioState,
     useTapestryInfo,
     withStudioState,
 } from "../../lib/studio/service_providers/studio_state_provider/studio_state_provider";
 import Sidebar from "../../lib/studio/sub_screens/sidebar/sidebar";
 import { useRouter } from "next/router";
-import { useCanvasByTime } from "../../lib/studio/routes/canvasTime/api/queries";
+import {
+    useCanvasByTime,
+    useSolCanvas,
+} from "../../lib/studio/routes/canvasTime/api/queries";
 import {
     STUDIO_EVENT,
     useStudioEventHandler,
 } from "../../lib/studio/service_providers/studio_events/studio_event";
-import { updateCanvasEverywhere } from "../../global_api/mutations";
 import { useProvider } from "../../lib/service_providers/provider_provider";
+import {
+    getMoreCubes,
+    updateCanvasEverywhere,
+} from "../../lib/studio/api/mutations";
 
 interface StudioProps {
     loading: boolean;
@@ -136,7 +141,9 @@ const Studio: NextPage = () => {
     const { setCanvasScreen } = useCanvasScreenInfo();
     const { newCubeAlgo, newCubePosition } = useNewCubeInfo();
 
-    useStudioEventHandler((event, _data) => {
+    const { refetch: refetchSolCanvas } = useSolCanvas(canvasTime);
+
+    useStudioEventHandler((event, data) => {
         switch (event) {
             case STUDIO_EVENT.CONFIRM_ADD_CUBE: {
                 (async () => {
@@ -201,6 +208,18 @@ const Studio: NextPage = () => {
             }
             case STUDIO_EVENT.CANCEL_CONFIRM_REMOVE_CUBE: {
                 setCanvasScreen(CanvasScreen.Default);
+                break;
+            }
+            case STUDIO_EVENT.GET_MORE_CUBES: {
+                const numCubes: number = data;
+
+                (async () => {
+                    await getMoreCubes(provider, program, numCubes, canvasTime);
+
+                    refetchSolCanvas();
+                    setCanvasScreen(CanvasScreen.Default);
+                })();
+
                 break;
             }
         }

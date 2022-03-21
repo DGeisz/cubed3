@@ -22,6 +22,7 @@ export enum CanvasScreen {
     ConfirmAddCube,
     RemoveCube,
     ConfirmRemoveCube,
+    MoreCubes,
 }
 
 interface StudioStateContext {
