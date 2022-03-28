@@ -11,6 +11,7 @@ use anchor_lang::solana_program::{
 };
 use anchor_lang::{Accounts, CpiContext};
 use anchor_spl::token::{self, MintTo, TokenAccount, Transfer};
+use mpl_token_metadata::{instruction::create_metadata_accounts, pda::find_metadata_account};
 
 declare_id!("5pDJMtbFrSnctiWQi57WtFgbpsuPbQKFkBMUyDMaVpef");
 // declare_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
@@ -32,12 +33,22 @@ const LISTING_SEED_PREFIX: &[u8] = b"listing";
 const OFFER_SEED_PREFIX: &[u8] = b"offer";
 const AUCTION_SEED_PREFIX: &[u8] = b"auction";
 const AUCTION_ESCROW_ACCOUNT_SEED_PREFIX: &[u8] = b"aes";
+const METAPLEX_PREFIX: &[u8] = b"metadata";
+// const METAPLEX_ID: &[u8] = b"metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s";
+const METAPLEX_ID: &[u8] = b"8hUaRvTPKu8yngrnBV8u9fgtEEjMwALDY48qzPnJBNeu";
+
+const TESTING: bool = false;
 
 fn _account_info_to_token_account(info: &AccountInfo) -> Result<TokenAccount, ProgramError> {
     TokenAccount::try_deserialize(&mut &**info.data.borrow())
 }
+
 #[program]
 pub mod cubed {
+    use std::str::FromStr;
+
+    use mpl_token_metadata::state::Creator;
+
     use super::*;
     use crate::utils::MIN_CANVAS_PRICE_SOL;
     use crate::utils::{calculate_prices, get_epoch_time_secs, PricePackage};
@@ -333,6 +344,12 @@ pub mod cubed {
         _token_bump: u8,
         epoch_time: i64,
     ) -> ProgramResult {
+        let metaplex_id = if TESTING {
+            "8hUaRvTPKu8yngrnBV8u9fgtEEjMwALDY48qzPnJBNeu"
+        } else {
+            "metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s"
+        };
+
         let canvas = &mut ctx.accounts.canvas;
         let artist = &mut ctx.accounts.artist;
 
@@ -368,6 +385,46 @@ pub mod cubed {
         token::mint_to(context, 1)?;
         canvas.finished = true;
 
+        /* Now create the token metadata */
+        let ix = create_metadata_accounts(
+            Pubkey::from_str(metaplex_id).unwrap(),
+            find_metadata_account(&ctx.accounts.mint.key()).0,
+            ctx.accounts.mint.key(),
+            artist.key(),
+            artist.key(),
+            ctx.accounts.cubed_master.key(),
+            "Cubed Mosaic".to_string(),
+            "".to_string(),
+            format!(
+                "https://dmjmpivqt60di.cloudfront.net/data/{}.json",
+                epoch_time
+            ),
+            Some(vec![Creator {
+                address: artist.key(),
+                verified: true,
+                share: 97,
+            }]),
+            3,
+            true,
+            false,
+        );
+
+        //   0. `[writable]`  Metadata key (pda of ['metadata', program id, mint id])
+        //   1. `[]` Mint of token asset
+        //   2. `[signer]` Mint authority
+        //   3. `[signer]` payer
+        //   4. `[]` update authority info
+        //   5. `[]` System program
+        //   6. `[]` Rent info
+        // invoke_signed(
+        //     &ix,
+        //     &[
+        //         bidder.to_account_info().clone(),
+        //         offer_account.to_account_info(),
+        //         ctx.accounts.system_program.to_account_info(),
+        //     ],
+        //     &[&o_seed[..]][..],
+        // )?;
         Ok(())
     }
 
@@ -1247,6 +1304,11 @@ pub struct MintMosaic<'info> {
         bump = _token_bump
     )]
     pub token_account: AccountInfo<'info>,
+    // #[account(mut,
+    //     seeds = [METAPLEX_PREFIX, METAPLEX_ID, // TODO: Mint id],
+    //     bump = _mint_bump,
+    // )]
+    // pub metadata: AccountInfo<'info>,
     #[account(
         mut,
         seeds = [MINT_SEED_PREFIX, &epoch_time.to_le_bytes()],
