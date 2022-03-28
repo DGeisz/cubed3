@@ -35,6 +35,9 @@ import {
   AUCTION_ESCROW_ACCOUNT_SEED_PREFIX,
   AUCTION_SEED_PREFIX,
 } from "../app/src/global_chain/chain_constants";
+import { programs } from "@metaplex/js";
+
+const TOKEN_METADATA_PROGRAM_ID = programs.metadata.MetadataProgram.PUBKEY;
 
 async function sleep(millis: number) {
   return new Promise((res) => setTimeout(res, millis));
@@ -420,6 +423,9 @@ describe("cubed", () => {
     _token_bump = token_bump;
     _token_pda = token_pda;
 
+    const [metadata_account, _metadata_bump] =
+      await programs.metadata.MetadataProgram.findMetadataAccount(_mint_pda);
+
     await program.rpc.mintMosaic(
       _master_bump,
       _canvas_bump,
@@ -428,6 +434,8 @@ describe("cubed", () => {
       _canvas_time,
       {
         accounts: {
+          tokenMetadataProgram: TOKEN_METADATA_PROGRAM_ID,
+          metadata: metadata_account,
           artist: artist.publicKey,
           cubedMaster: _master_pda,
           canvas: _canvas_pda,

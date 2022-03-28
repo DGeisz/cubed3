@@ -19,3 +19,4 @@ anchor-spl = "0.18.2"
 anchor-lang = "0.18.2"
 spl-token = { version = "3.3.0", features = ["no-entrypoint"] }
 mpl-token-metadata = { version = "1.2.5", features = ["no-entrypoint"] }
+arrayref = "0.3.6"

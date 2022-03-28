@@ -91,18 +91,6 @@ const Sidebar: React.FC<Props> = (props) => {
                         className={clsx(LandingStyles.WalletButton)}
                     />
                 </div>
-                <div className={StudioStyles.buttonContainer}>
-                    <div
-                        className={StudioStyles.studioButton}
-                        onClick={async () => {
-                            await axios.post(`${BASE_URL}/test_canvas_image`, {
-                                time: props.canvasTime,
-                            });
-                        }}
-                    >
-                        Test Image
-                    </div>
-                </div>
                 <div
                     className={clsx(
                         "flex flex-row",
