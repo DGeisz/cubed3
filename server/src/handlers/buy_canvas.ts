@@ -8,6 +8,7 @@ import {
   drawMosaicImageToBuffer,
 } from "../models/cubed/mosaic_tapestry";
 import { S3 } from "aws-sdk";
+import { getCanvasByTime } from "./get_canvases";
 
 export async function getCanvasRoute(
   req: Request<any, any, { time: number }>,
@@ -147,6 +148,7 @@ export async function buyCanvas(
     const doc = new CanvasModel({
       artist: canvas.artist.toString(),
       price: canvas.price,
+      finished: canvas.finished,
       collectionName: collectionName,
       time,
       finalCubes: [],

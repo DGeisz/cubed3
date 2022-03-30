@@ -17,3 +17,8 @@ export const LISTING_SEED_PREFIX = "listing";
 export const OFFER_SEED_PREFIX = "offer";
 export const AUCTION_SEED_PREFIX = "auction";
 export const AUCTION_ESCROW_ACCOUNT_SEED_PREFIX = "aes";
+
+// Change this when we deploy to dev net
+export const TOKEN_METADATA_PROGRAM_ID =
+    "HgwNM7dNbivnhuS62jyk3gMuepZgbFTT6thnjqvyGAso";
+export const METADATA_NAME = "metadata";

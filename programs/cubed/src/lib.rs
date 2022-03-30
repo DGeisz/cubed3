@@ -16,7 +16,6 @@ use arrayref::{array_ref, array_refs};
 use mpl_token_metadata::instruction::create_metadata_accounts;
 
 declare_id!("5pDJMtbFrSnctiWQi57WtFgbpsuPbQKFkBMUyDMaVpef");
-// declare_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
 
 mod utils;
 
@@ -35,8 +34,6 @@ const LISTING_SEED_PREFIX: &[u8] = b"listing";
 const OFFER_SEED_PREFIX: &[u8] = b"offer";
 const AUCTION_SEED_PREFIX: &[u8] = b"auction";
 const AUCTION_ESCROW_ACCOUNT_SEED_PREFIX: &[u8] = b"aes";
-
-const TESTING: bool = false;
 
 fn _account_info_to_token_account(info: &AccountInfo) -> Result<TokenAccount, ProgramError> {
     TokenAccount::try_deserialize(&mut &**info.data.borrow())
@@ -386,6 +383,8 @@ pub mod cubed {
             &artist.key().to_bytes(),
             &t_bump[..],
         ];
+
+        msg!("Minting token...");
 
         let mi_bump = [_mint_bump];
         let mi_seed = [MINT_SEED_PREFIX, &epoch_time.to_le_bytes(), &mi_bump[..]];
@@ -1341,7 +1340,7 @@ pub struct MintMosaic<'info> {
         bump = _token_bump
     )]
     pub token_account: AccountInfo<'info>,
-    #[account(address = mpl_token_metadata::id())]
+    // #[account(address = mpl_token_metadata::id())]
     token_metadata_program: AccountInfo<'info>,
     #[account(mut)]
     metadata: UncheckedAccount<'info>,

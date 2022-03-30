@@ -37,6 +37,7 @@ interface Canvas {
   /* We tell the server what the next intension for the
   state of the canvas is so that we prevent data loss */
   intendedCubes: CubePlacement[];
+  finished: boolean;
 }
 
 /* Canvas */
@@ -64,6 +65,10 @@ const CanvasSchema = new Schema<Canvas>({
   },
   intendedCubes: {
     type: [CubePlacementSchema],
+    required: true,
+  },
+  finished: {
+    type: Boolean,
     required: true,
   },
 });

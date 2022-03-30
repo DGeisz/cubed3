@@ -25,6 +25,9 @@ import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 import Modal from "../global_building_blocks/modal/model";
 import Image from "next/image";
 import axios from "axios";
+import { buyCanvasOnChainAndServer } from "../lib/api/mutations";
+import { useRouter } from "next/router";
+import { DotLoader } from "react-spinners";
 
 const DEV = true;
 
@@ -38,6 +41,8 @@ const Landing: NextPage = () => {
 
     const [price, setPrice] = useState<number>(0.1);
 
+    const [buyLoading, setBuyLoading] = useState<boolean>(false);
+
     const callBuyCanvas = async () => {
         const res = await axios.post("http://localhost:4000/buy_canvas", {
             hello: 1,
@@ -45,6 +50,8 @@ const Landing: NextPage = () => {
 
         console.log("called", res.data);
     };
+
+    const router = useRouter();
 
     useEffect(() => {
         let master_pda: PublicKey;
@@ -161,7 +168,7 @@ const Landing: NextPage = () => {
                                             className={clsx(
                                                 "text-white",
                                                 "font-extrabold",
-                                                "mb-8",
+                                                !buyLoading && "mb-8",
                                                 "rounded-lg",
                                                 "cursor-pointer",
                                                 "select-none",
@@ -172,68 +179,63 @@ const Landing: NextPage = () => {
                                         >
                                             The Shop
                                         </div>
-                                        <div
-                                            className={clsx(
-                                                LandingStyles.MintButton,
-                                                !BUY_CANVAS_LIVE &&
-                                                    "opacity-60 cursor-default"
-                                            )}
-                                            onClick={async () => {
-                                                if (BUY_CANVAS_LIVE) {
-                                                    if (
-                                                        provider.wallet
-                                                            .publicKey
-                                                    ) {
-                                                        const lBef =
-                                                            (
-                                                                await provider.connection.getAccountInfo(
-                                                                    provider
-                                                                        .wallet
-                                                                        .publicKey
-                                                                )
-                                                            )?.lamports || 0;
-                                                        await buyCanvas(
-                                                            provider,
-                                                            program
-                                                        );
-
-                                                        const lAf =
-                                                            (
-                                                                await provider.connection.getAccountInfo(
-                                                                    provider
-                                                                        .wallet
-                                                                        .publicKey
-                                                                )
-                                                            )?.lamports || 0;
-
-                                                        console.log(
-                                                            "Sol delta",
-                                                            lBef,
-                                                            lAf,
-                                                            lAf - lBef,
-                                                            (lBef - lAf) /
-                                                                LAMPORTS_PER_SOL
-                                                        );
-                                                    } else {
-                                                        setVisible(true);
-                                                    }
-                                                }
-                                            }}
-                                        >
-                                            <span
+                                        {buyLoading ? (
+                                            <div
                                                 className={clsx(
-                                                    BUY_CANVAS_LIVE && [
-                                                        "border-0 border-r-2 border-white",
-                                                        "pr-2 mr-2",
-                                                    ]
+                                                    "flex flex-1 justify-center items-center mb-8"
                                                 )}
                                             >
-                                                Buy Canvas
-                                            </span>
-                                            {BUY_CANVAS_LIVE && (
-                                                <span>◎{price}</span>
-                                            )}
-                                        </div>
+                                                <DotLoader color="#00bcd4" />
+                                            </div>
+                                        ) : (
+                                            <div
+                                                className={clsx(
+                                                    LandingStyles.MintButton,
+                                                    !BUY_CANVAS_LIVE &&
+                                                        "opacity-60 cursor-default"
+                                                )}
+                                                onClick={async () => {
+                                                    if (BUY_CANVAS_LIVE) {
+                                                        if (
+                                                            provider.wallet
+                                                                .publicKey
+                                                        ) {
+                                                            setBuyLoading(true);
+
+                                                            const time =
+                                                                await buyCanvasOnChainAndServer(
+                                                                    provider,
+                                                                    program
+                                                                );
+
+                                                            await router.push(
+                                                                `studio/${time}`
+                                                            );
+
+                                                            setBuyLoading(
+                                                                false
+                                                            );
+                                                        } else {
+                                                            setVisible(true);
+                                                        }
+                                                    }
+                                                }}
+                                            >
+                                                <span
+                                                    className={clsx(
+                                                        BUY_CANVAS_LIVE && [
+                                                            "border-0 border-r-2 border-white",
+                                                            "pr-2 mr-2",
+                                                        ]
+                                                    )}
+                                                >
+                                                    Buy Canvas
+                                                </span>
+                                                {BUY_CANVAS_LIVE && (
+                                                    <span>◎{price}</span>
+                                                )}
+                                            </div>
+                                        )}
                                         <div
                                             className={clsx(
                                                 "text-lg font-semibold",

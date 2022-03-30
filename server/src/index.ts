@@ -7,6 +7,8 @@ import _ from "underscore";
 
 const PORT: string | number = process.env.PORT || 4000;
 
+console.log("PORT", PORT);
+
 const app = express();
 
 app.use(cors());
@@ -26,3 +28,12 @@ app.use(routes);
     throw e;
   }
 })();
+
+process.once("SIGUSR2", function () {
+  process.kill(process.pid, "SIGUSR2");
+});
+
+process.on("SIGINT", function () {
+  // this is only called on ctrl+c, not restart
+  process.kill(process.pid, "SIGINT");
+});

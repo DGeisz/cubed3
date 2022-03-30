@@ -11,12 +11,19 @@ export const StudioStyles = {
     ),
     categoryTitle: clsx(
         "font-extrabold",
+        "text-lg",
         "pb-2",
         "text-transparent bg-clip-text bg-gradient-to-br",
         "from-cyan-600 to-green-600",
         "select-none"
     ),
-    categoryStat: clsx("text-3xl", "text-green-900", "select-none"),
+    categoryStat: clsx(
+        "text-md",
+        "text-transparent bg-clip-text bg-gradient-to-br",
+        "from-cyan-800 to-green-800",
+        "select-none",
+        "font-bold"
+    ),
     categoryText: clsx("text-xl", "text-green-900", "select-none"),
     categoryTextNone: clsx("text-xl", "text-gray-400", "select-none"),
     buttonContainer: clsx(

@@ -16,7 +16,7 @@ import {
     encodePosition,
     extendAlgo,
 } from "../global_architecture/cube_model/cube_model";
-import { getCanvasInfo } from "../global_api/helpers";
+import { getCanvasInfo, getMintInfo } from "../global_api/helpers";
 
 interface DefaultAddresses {
     master_pda: PublicKey;
@@ -122,18 +122,12 @@ export async function buyCanvas(
 
     const time = Math.floor(Date.now() / 1000) - 1;
 
-    const { canvas_bump, canvas_pda, canvas_time, canvas_time_buffer } =
-        await getCanvasInfo(time, program.programId);
-
-    console.log("canvas_pda", canvas_pda.toString());
-
-    const [mint_pda, mint_bump] = await PublicKey.findProgramAddress(
-        [
-            Buffer.from(anchor.utils.bytes.utf8.encode(MINT_SEED_PREFIX)),
-            canvas_time_buffer,
-        ],
+    const { canvas_bump, canvas_pda, canvas_time } = await getCanvasInfo(
+        time,
         program.programId
     );
+
+    const { mint_bump, mint_pda } = await getMintInfo(time, program.programId);
 
     /* Default to adding to the default collection  */
     collection = collection || {

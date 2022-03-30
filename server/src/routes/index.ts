@@ -5,6 +5,7 @@ import {
   testSaveImage,
 } from "../handlers/buy_canvas";
 import { deleteEverything } from "../handlers/delete_everything";
+import { finishMosaic } from "../handlers/finish_mosaic";
 import {
   getAllCanvases,
   getAllCollectionCanvases,
@@ -29,6 +30,9 @@ routes.post("/all_canvases", getAllCanvases);
 routes.post("/collection_canvases", getAllCollectionCanvases);
 routes.post("/artist_canvases", getArtistCanvases);
 routes.post("/canvas_by_time", getCanvasByTime);
+
+/* Finish Mosaic */
+routes.post("/finish_mosaic", finishMosaic);
 
 /* DEV ROUTES (BE CAREFUL!) */
 if (process.env.DEV === "true") {

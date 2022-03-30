@@ -24,8 +24,8 @@ import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import { LandingStyles } from "../../../landing_styles";
 import { CUBE_PRICE } from "../../../../global_chain/chain_constants";
 import { DotLoader } from "react-spinners";
-import { BASE_URL } from "../../../../global_networking/constants";
-import axios from "axios";
+import { finishMosaic } from "../../api/mutations";
+import { useProvider } from "../../../service_providers/provider_provider";
 
 interface Props {
     canvasTime: number;
@@ -48,9 +48,11 @@ const Sidebar: React.FC<Props> = (props) => {
     const { canvasScreen, setCanvasScreen } = useCanvasScreenInfo();
     const { tapestry } = useTapestryInfo();
 
+    const { program, provider } = useProvider();
     const { turnPeriod, setPeriod } = useStudioState();
-
     const [loading, setLoading] = useState<boolean>(false);
+    const [finishCanvasLoading, setFinishCanvasLoading] =
+        useState<boolean>(false);
 
     const {
         data: canvas,
@@ -311,6 +313,86 @@ const Sidebar: React.FC<Props> = (props) => {
                                         </div>
                                     </div>
                                 </div>
+                            ) : canvasScreen ===
+                              CanvasScreen.ConfirmFinishMosaic ? (
+                                <div className="flex flex-col">
+                                    <div
+                                        className={clsx(
+                                            StudioStyles.studioTitle,
+                                            "flex text-center mb-4"
+                                        )}
+                                    >
+                                        You all finished? If so, way to go,
+                                        champ 👊.
+                                        <br />
+                                        <br />
+                                        Slap that "Confirm" to show the world
+                                        your masterpiece.
+                                    </div>
+                                    {finishCanvasLoading ? (
+                                        <div
+                                            className={clsx(
+                                                StudioStyles.buttonContainer,
+                                                "mt-4"
+                                            )}
+                                        >
+                                            <DotLoader color="#00bcd4" />
+                                        </div>
+                                    ) : (
+                                        <>
+                                            <div
+                                                className={
+                                                    StudioStyles.buttonContainer
+                                                }
+                                            >
+                                                <div
+                                                    className={
+                                                        StudioStyles.studioButton
+                                                    }
+                                                    onClick={async () => {
+                                                        setFinishCanvasLoading(
+                                                            true
+                                                        );
+
+                                                        await finishMosaic(
+                                                            provider,
+                                                            program,
+                                                            props.canvasTime
+                                                        );
+
+                                                        setFinishCanvasLoading(
+                                                            false
+                                                        );
+
+                                                        setCanvasScreen(
+                                                            CanvasScreen.Default
+                                                        );
+                                                    }}
+                                                >
+                                                    Confirm
+                                                </div>
+                                            </div>
+                                            <div
+                                                className={
+                                                    StudioStyles.buttonContainer
+                                                }
+                                            >
+                                                <div
+                                                    className={
+                                                        StudioStyles.studioButtonCancel
+                                                    }
+                                                    onClick={() => {
+                                                        setCanvasScreen(
+                                                            CanvasScreen.Default
+                                                        );
+                                                    }}
+                                                >
+                                                    Cancel
+                                                </div>
+                                            </div>
+                                        </>
+                                    )}
+                                </div>
                             ) : canvasScreen === CanvasScreen.MoreCubes ? (
                                 <div className="flex flex-col">
                                     <div
@@ -433,6 +515,7 @@ const Sidebar: React.FC<Props> = (props) => {
                                             <div
                                                 className={clsx(
                                                     "border-b border-solid border-gray-300",
+                                                    "pb-4",
                                                     "mb-4"
                                                 )}
                                             >
@@ -458,6 +541,11 @@ const Sidebar: React.FC<Props> = (props) => {
                                                 <div
                                                     className={
                                                         StudioStyles.studioButton
+                                                    }
+                                                    onClick={() =>
+                                                        setCanvasScreen(
+                                                            CanvasScreen.ConfirmFinishMosaic
+                                                        )
                                                     }
                                                 >
                                                     Finish Mosaic
@@ -565,24 +653,21 @@ const Sidebar: React.FC<Props> = (props) => {
                 {studioScreen === StudioScreen.Canvas && (
                     <div>
                         <div className={StudioStyles.categoryContainer}>
-                            <div className={StudioStyles.categoryTitle}>
-                                Cubes in Canvas
+                            <div className={clsx([StudioStyles.categoryTitle])}>
+                                Cubes
                             </div>
                             <div className={StudioStyles.categoryStat}>
-                                {tapestry.cubes.length}
-                            </div>
-                        </div>
-                        <div className={StudioStyles.categoryContainer}>
-                            <div className={StudioStyles.categoryTitle}>
-                                Unused Cubes
+                                In Canvas: <span>{tapestry.cubes.length}</span>
                             </div>
                             <div className={StudioStyles.categoryStat}>
-                                {canvasLoading
-                                    ? "Loading..."
-                                    : canvas?.unusedCubes}
+                                Unused:{" "}
+                                <span>
+                                    {canvasLoading
+                                        ? "Loading..."
+                                        : canvas?.unusedCubes}
+                                </span>
                             </div>
                         </div>
-
                         {canvasScreen !== CanvasScreen.MoreCubes && (
                             <div className={StudioStyles.buttonContainer}>
                                 <div
