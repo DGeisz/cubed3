@@ -13,8 +13,11 @@ import {
     getListingOfferInfo,
     getMosaicListingInfo,
     getTokenMaster,
+    getTokenOwnerInfo,
 } from "../../../../../global_api/helpers";
 import { useEffect } from "react";
+import { PublicKey } from "@solana/web3.js";
+import { useCanvasWallet } from "../../../service_providers/studio_state_provider/studio_state_provider";
 
 export function useCanvasByTime(time: number): FetchResponse<ServerCanvas> {
     return usePostRequest(
@@ -74,6 +77,30 @@ export function useSolCanvas(time: number) {
     return { ...fetch, refetch: solCanvasDirectory.refetchAll };
 }
 
+export function useUserTokenAccount(time: number) {
+    const { program, provider } = useProvider();
+
+    return useFetch(async () => {
+        if (!provider?.wallet?.publicKey) {
+            return undefined;
+        }
+
+        const tokenMaster = await getTokenMaster(
+            provider,
+            time,
+            program.programId
+        );
+
+        const { token_pda } = await getTokenOwnerInfo(
+            time,
+            provider.wallet.publicKey,
+            program.programId
+        );
+
+        return await tokenMaster.getAccountInfo(token_pda);
+    }, [time, provider?.wallet?.publicKey, program]);
+}
+
 export function useCanvasMarketplaceInfo(time: number) {
     const { program, provider } = useProvider();
 
@@ -85,19 +112,31 @@ export function useCanvasMarketplaceInfo(time: number) {
             program.programId
         );
 
-        return await program.account.mosaicListing.fetch(listing_pda);
+        try {
+            return await program.account.mosaicListing.fetch(listing_pda);
+        } catch (e) {
+            return undefined;
+        }
     }, [time, program]);
 
     /* Get the associated escrow account */
     const listingEscrowFetch = useFetch(async () => {
-        const tokenMaster = getTokenMaster(provider);
+        const tokenMaster = await getTokenMaster(
+            provider,
+            time,
+            program.programId
+        );
 
         const { escrow_pda } = await getListingEscrowAccountInfo(
             time,
             program.programId
         );
 
-        return await tokenMaster.getAccountInfo(escrow_pda);
+        try {
+            return await tokenMaster.getAccountInfo(escrow_pda);
+        } catch (e) {
+            return undefined;
+        }
     }, [time, program]);
 
     const offerFetch = useFetch(async () => {
@@ -106,24 +145,40 @@ export function useCanvasMarketplaceInfo(time: number) {
             program.programId
         );
 
-        return await program.account.mosaicOffer.fetch(offer_pda);
+        try {
+            return await program.account.mosaicOffer.fetch(offer_pda);
+        } catch (e) {
+            return undefined;
+        }
     }, [time, program]);
 
     const auctionFetch = useFetch(async () => {
         const { auction_pda } = await getAuctionInfo(time, program.programId);
 
-        return await program.account.mosaicAuction.fetch(auction_pda);
+        try {
+            return await program.account.mosaicAuction.fetch(auction_pda);
+        } catch (e) {
+            return undefined;
+        }
     }, [time, program]);
 
     const auctionEscrowAccountFetch = useFetch(async () => {
-        const tokenMaster = getTokenMaster(provider);
+        const tokenMaster = await getTokenMaster(
+            provider,
+            time,
+            program.programId
+        );
 
         const { escrow_pda } = await getAuctionEscrowAccountInfo(
             time,
             program.programId
         );
 
-        return await tokenMaster.getAccountInfo(escrow_pda);
+        try {
+            return await tokenMaster.getAccountInfo(escrow_pda);
+        } catch (e) {
+            return undefined;
+        }
     }, [time, program]);
 
     return {

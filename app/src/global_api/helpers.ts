@@ -7,15 +7,22 @@ import {
     LISTING_SEED_PREFIX,
     MINT_SEED_PREFIX,
     OFFER_SEED_PREFIX,
+    TOKEN_ACCOUNT_SEED_PREFIX,
 } from "../global_chain/chain_constants";
 import { Token, TOKEN_PROGRAM_ID } from "@solana/spl-token";
 
-export function getTokenMaster(provider: anchor.Provider) {
+export async function getTokenMaster(
+    provider: anchor.Provider,
+    canvasTime: number,
+    programId: PublicKey
+) {
+    const { mint_pda } = await getMintInfo(canvasTime, programId);
+
     const pair = Keypair.generate();
 
     const tokenMaster = new Token(
         provider.connection,
-        pair.publicKey,
+        mint_pda,
         TOKEN_PROGRAM_ID,
         pair
     );
@@ -173,4 +180,25 @@ export async function getAuctionEscrowAccountInfo(
         escrow_pda,
         escrow_bump,
     };
+}
+
+export async function getTokenOwnerInfo(
+    canvasTime: number,
+    ownerKey: PublicKey,
+    program: PublicKey
+) {
+    const { buffer: canvas_time_buffer } = canvasTimeToBNAndBuffer(canvasTime);
+
+    const [token_pda, token_bump] = await PublicKey.findProgramAddress(
+        [
+            Buffer.from(
+                anchor.utils.bytes.utf8.encode(TOKEN_ACCOUNT_SEED_PREFIX)
+            ),
+            canvas_time_buffer,
+            ownerKey.toBytes(),
+        ],
+        program
+    );
+
+    return { token_pda, token_bump };
 }
