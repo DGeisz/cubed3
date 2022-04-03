@@ -28,7 +28,7 @@ import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import { LandingStyles, pinkToPurple } from "../../../landing_styles";
 import { CUBE_PRICE } from "../../../../global_chain/chain_constants";
 import { DotLoader } from "react-spinners";
-import { finishMosaic } from "../../api/mutations";
+import { finishMosaic, listMosaic } from "../../api/mutations";
 import { useProvider } from "../../../service_providers/provider_provider";
 import { clearScreenDown } from "readline";
 import Marketplace from "./building_blocks/marketplace/marketplace";
@@ -51,8 +51,11 @@ function showSidebarMosaic(
 const Sidebar: React.FC<Props> = (props) => {
     const { newCubeAlgo, undo, setNewCubeAlgo } = useNewCubeInfo();
     const { studioScreen } = useStudioScreenInfo();
-    const { canvasScreen, setCanvasScreen } = useCanvasScreenInfo();
+    // const { canvasScreen, setCanvasScreen } = useCanvasScreenInfo();
+    const { setCanvasScreen } = useCanvasScreenInfo();
     const { tapestry } = useTapestryInfo();
+
+    const canvasScreen: CanvasScreen = CanvasScreen.SetPrice;
 
     const { program, provider } = useProvider();
     const { turnPeriod, setPeriod } = useStudioState();
@@ -82,6 +85,9 @@ const Sidebar: React.FC<Props> = (props) => {
 
     /* Handle getting more cubes */
     const [numMoreCubes, setNumMoreCubes] = useState<number>();
+
+    const [mosaicPrice, setMosaicPrice] = useState<number>();
+    const [newMosaicPrice, setNewMosaicPrice] = useState<number>();
 
     useEffect(() => {
         if (canvasScreen === CanvasScreen.MoreCubes) {
@@ -519,6 +525,347 @@ const Sidebar: React.FC<Props> = (props) => {
                                         )}
                                     </div>
                                 </div>
+                            ) : canvasScreen === CanvasScreen.SetPrice ? (
+                                <div className="flex flex-col">
+                                    <div
+                                        className={clsx(
+                                            "font-bold",
+                                            "text-cyan-500"
+                                        )}
+                                    >
+                                        Set Price
+                                    </div>
+                                    <div
+                                        className={clsx(
+                                            "mt-4",
+                                            "border-solid border-b border-gray-200 ",
+                                            "overflow-hidden"
+                                        )}
+                                    >
+                                        <div className={clsx("flex flex-row")}>
+                                            <span
+                                                className={clsx(
+                                                    "text-cyan-600 text-xl mr-1 bg-red"
+                                                )}
+                                            >
+                                                ◎
+                                            </span>
+                                            <input
+                                                value={mosaicPrice}
+                                                onChange={(e) => {
+                                                    e.preventDefault();
+                                                    console.log(e.target.value);
+
+                                                    setMosaicPrice(
+                                                        parseFloat(
+                                                            e.target.value
+                                                        )
+                                                    );
+                                                }}
+                                                autoFocus
+                                                type={"number"}
+                                                placeholder="Mosaic Price..."
+                                                className={clsx(
+                                                    "text-xl font-medium placeholder:text-slate-300 text-slate-500"
+                                                )}
+                                            />
+                                        </div>
+                                    </div>
+                                    <div
+                                        className={clsx(
+                                            "flex flex-col justify-center",
+                                            "mt-8"
+                                        )}
+                                    >
+                                        {!loading ? (
+                                            <>
+                                                <div
+                                                    className={
+                                                        StudioStyles.buttonContainer
+                                                    }
+                                                >
+                                                    <div
+                                                        className={
+                                                            numMoreCubes
+                                                                ? StudioStyles.studioButton
+                                                                : StudioStyles.studioButtonDisabled
+                                                        }
+                                                        onClick={async () => {
+                                                            setLoading(true);
+
+                                                            try {
+                                                                await listMosaic(
+                                                                    provider,
+                                                                    program,
+                                                                    props.canvasTime,
+                                                                    mosaicPrice ||
+                                                                        0
+                                                                );
+                                                            } catch (e) {}
+
+                                                            setLoading(false);
+
+                                                            setCanvasScreen(
+                                                                CanvasScreen.Default
+                                                            );
+                                                        }}
+                                                    >
+                                                        Confirm
+                                                    </div>
+                                                </div>
+                                                <div
+                                                    className={
+                                                        StudioStyles.buttonContainer
+                                                    }
+                                                    onClick={() =>
+                                                        setCanvasScreen(
+                                                            CanvasScreen.Default
+                                                        )
+                                                    }
+                                                >
+                                                    <div
+                                                        className={
+                                                            StudioStyles.studioButtonCancel
+                                                        }
+                                                    >
+                                                        Cancel
+                                                    </div>
+                                                </div>
+                                            </>
+                                        ) : (
+                                            <div className="flex justify-center items-center">
+                                                <DotLoader color="#00bcd4" />
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            ) : canvasScreen === CanvasScreen.ChangePrice ? (
+                                <div className="flex flex-col">
+                                    <div
+                                        className={clsx(
+                                            "font-bold",
+                                            "text-cyan-500"
+                                        )}
+                                    >
+                                        Change Price
+                                    </div>
+                                    <div
+                                        className={clsx(
+                                            "mt-4",
+                                            "border-solid border-b border-gray-200 ",
+                                            "overflow-hidden"
+                                        )}
+                                    >
+                                        <div className={clsx("flex flex-row")}>
+                                            <span
+                                                className={clsx(
+                                                    "text-cyan-600 text-xl mr-1 bg-red"
+                                                )}
+                                            >
+                                                ◎
+                                            </span>
+                                            <input
+                                                value={newMosaicPrice}
+                                                onChange={(e) => {
+                                                    e.preventDefault();
+                                                    console.log(e.target.value);
+
+                                                    setNewMosaicPrice(
+                                                        parseFloat(
+                                                            e.target.value
+                                                        )
+                                                    );
+                                                }}
+                                                autoFocus
+                                                type={"number"}
+                                                placeholder="New Price..."
+                                                className={clsx(
+                                                    "text-xl font-medium placeholder:text-slate-300 text-slate-500"
+                                                )}
+                                            />
+                                        </div>
+                                    </div>
+                                    <div
+                                        className={clsx(
+                                            "flex flex-col justify-center",
+                                            "mt-8"
+                                        )}
+                                    >
+                                        {!loading ? (
+                                            <div className="flex flex-col">
+                                                <div
+                                                    className={
+                                                        StudioStyles.buttonContainer
+                                                    }
+                                                >
+                                                    <div
+                                                        className={
+                                                            StudioStyles.studioButton
+                                                        }
+                                                        onClick={() => {
+                                                            studioEventSystem.emit(
+                                                                STUDIO_EVENT.GET_MORE_CUBES,
+                                                                numMoreCubes
+                                                            );
+                                                            setLoading(true);
+                                                        }}
+                                                    >
+                                                        Confirm
+                                                    </div>
+                                                </div>
+                                                <div
+                                                    className={
+                                                        StudioStyles.buttonContainer
+                                                    }
+                                                    onClick={() =>
+                                                        setCanvasScreen(
+                                                            CanvasScreen.Default
+                                                        )
+                                                    }
+                                                >
+                                                    <div
+                                                        className={
+                                                            StudioStyles.studioButtonCancel
+                                                        }
+                                                    >
+                                                        Cancel
+                                                    </div>
+                                                </div>
+                                                <div
+                                                    className={clsx(
+                                                        StudioStyles.buttonContainer,
+                                                        "mt-40"
+                                                    )}
+                                                    onClick={() =>
+                                                        setCanvasScreen(
+                                                            CanvasScreen.Default
+                                                        )
+                                                    }
+                                                >
+                                                    <div
+                                                        className={
+                                                            StudioStyles.studioButton
+                                                        }
+                                                    >
+                                                        Remove Listing
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <div className="flex justify-center items-center">
+                                                <DotLoader color="#00bcd4" />
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            ) : canvasScreen === CanvasScreen.MakeOffer ? (
+                                <div className="flex flex-col">
+                                    <div
+                                        className={clsx(
+                                            "font-bold",
+                                            "text-cyan-500"
+                                        )}
+                                    >
+                                        Grab more cubes
+                                    </div>
+                                    <div
+                                        className={clsx(
+                                            "mt-4",
+                                            "border-solid border-b border-gray-200 ",
+                                            "overflow-hidden"
+                                        )}
+                                    >
+                                        <input
+                                            value={numMoreCubes}
+                                            onChange={(e) => {
+                                                e.preventDefault();
+
+                                                setNumMoreCubes(
+                                                    parseInt(
+                                                        e.target.value.replace(
+                                                            /\D/g,
+                                                            ""
+                                                        )
+                                                    )
+                                                );
+                                            }}
+                                            autoFocus
+                                            type={"number"}
+                                            placeholder="How many cubes?"
+                                            className={clsx(
+                                                "flex flex-1",
+                                                "text-xl font-medium placeholder:text-slate-300"
+                                            )}
+                                        />
+                                    </div>
+                                    <div
+                                        className={clsx(
+                                            "mt-1",
+                                            "font-semibold",
+                                            "text-slate-500"
+                                        )}
+                                    >
+                                        Cost:{" "}
+                                        <span className={clsx("text-cyan-600")}>
+                                            ◎{(numMoreCubes || 0) * CUBE_PRICE}
+                                        </span>
+                                    </div>
+                                    <div
+                                        className={clsx(
+                                            "flex flex-col justify-center",
+                                            "mt-8"
+                                        )}
+                                    >
+                                        {!loading ? (
+                                            <>
+                                                <div
+                                                    className={
+                                                        StudioStyles.buttonContainer
+                                                    }
+                                                >
+                                                    <div
+                                                        className={
+                                                            numMoreCubes
+                                                                ? StudioStyles.studioButton
+                                                                : StudioStyles.studioButtonDisabled
+                                                        }
+                                                        onClick={() => {
+                                                            studioEventSystem.emit(
+                                                                STUDIO_EVENT.GET_MORE_CUBES,
+                                                                numMoreCubes
+                                                            );
+                                                            setLoading(true);
+                                                        }}
+                                                    >
+                                                        Confirm
+                                                    </div>
+                                                </div>
+                                                <div
+                                                    className={
+                                                        StudioStyles.buttonContainer
+                                                    }
+                                                    onClick={() =>
+                                                        setCanvasScreen(
+                                                            CanvasScreen.Default
+                                                        )
+                                                    }
+                                                >
+                                                    <div
+                                                        className={
+                                                            StudioStyles.studioButtonCancel
+                                                        }
+                                                    >
+                                                        Cancel
+                                                    </div>
+                                                </div>
+                                            </>
+                                        ) : (
+                                            <div className="flex justify-center items-center">
+                                                <DotLoader color="#00bcd4" />
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
                             ) : null}
                             {showSidebarMosaic(
                                 tapestry.cubes.length,
@@ -727,7 +1074,9 @@ const Sidebar: React.FC<Props> = (props) => {
                                 )}
                             </>
                         ) : (
-                            <Marketplace {...props} />
+                            canvasScreen == CanvasScreen.Default && (
+                                <Marketplace {...props} />
+                            )
                         )}
                     </div>
                 )}

@@ -11,13 +11,17 @@ import {
     placeCube,
     removeCube,
 } from "../../../global_chain/chain_methods";
-import { BASE_URL } from "../../../global_networking/constants";
+import { axiosPost, BASE_URL } from "../../../global_networking/constants";
 import { Cubed } from "../../../global_types/cubed";
 import * as anchor from "@project-serum/anchor";
 import {
     canvasTimeToBNAndBuffer,
     getCanvasInfo,
+    getListingEscrowAccountInfo,
+    getListingOfferInfo,
     getMintInfo,
+    getMosaicListingInfo,
+    getTokenOwnerInfo,
 } from "../../../global_api/helpers";
 import { PublicKey, SystemProgram, SYSVAR_RENT_PUBKEY } from "@solana/web3.js";
 import {
@@ -185,4 +189,205 @@ export async function finishMosaic(
     });
 
     console.log("Finished everywhere");
+}
+
+export async function listMosaic(
+    provider: Provider,
+    program: Program<Cubed>,
+    canvasTime: number,
+    price: number
+) {
+    const { master_bump, master_pda } = await getDefaultAddresses(program);
+
+    const { escrow_pda, escrow_bump } = await getListingEscrowAccountInfo(
+        canvasTime,
+        program.programId
+    );
+
+    const { mint_bump, mint_pda } = await getMintInfo(
+        canvasTime,
+        program.programId
+    );
+
+    const { listing_pda, listing_bump } = await getMosaicListingInfo(
+        canvasTime,
+        program.programId
+    );
+
+    const { token_bump, token_pda } = await getTokenOwnerInfo(
+        canvasTime,
+        provider.wallet.publicKey,
+        program.programId
+    );
+
+    const { canvas_time } = await getCanvasInfo(canvasTime, program.programId);
+
+    await program.rpc.listMosaic(
+        master_bump,
+        mint_bump,
+        token_bump,
+        escrow_bump,
+        listing_bump,
+        canvas_time,
+        new anchor.BN(price),
+        {
+            accounts: {
+                owner: provider.wallet.publicKey,
+                cubedMaster: master_pda,
+                tokenAccount: token_pda,
+                escrowAccount: escrow_pda,
+                mint: mint_pda,
+                systemProgram: SystemProgram.programId,
+                tokenProgram: TOKEN_PROGRAM_ID,
+                listing: listing_pda,
+                rent: SYSVAR_RENT_PUBKEY,
+            },
+        }
+    );
+
+    await axiosPost("check_listing", { time: canvasTime });
+}
+
+export async function changeListing(
+    provider: Provider,
+    program: Program<Cubed>,
+    canvasTime: number,
+    price: number
+) {
+    const { escrow_pda, escrow_bump } = await getListingEscrowAccountInfo(
+        canvasTime,
+        program.programId
+    );
+
+    const { listing_pda, listing_bump } = await getMosaicListingInfo(
+        canvasTime,
+        program.programId
+    );
+
+    const { canvas_time } = await getCanvasInfo(canvasTime, program.programId);
+
+    await program.rpc.changeListing(
+        escrow_bump,
+        listing_bump,
+        canvas_time,
+        new anchor.BN(price),
+        {
+            accounts: {
+                owner: provider.wallet.publicKey,
+                listing: listing_pda,
+                escrowAccount: escrow_pda,
+                systemProgram: SystemProgram.programId,
+            },
+        }
+    );
+
+    await axiosPost("check_listing", { time: canvasTime });
+}
+
+export async function removeListing(
+    provider: Provider,
+    program: Program<Cubed>,
+    canvasTime: number
+) {
+    const { master_bump, master_pda } = await getDefaultAddresses(program);
+
+    const { escrow_pda, escrow_bump } = await getListingEscrowAccountInfo(
+        canvasTime,
+        program.programId
+    );
+
+    const { listing_pda, listing_bump } = await getMosaicListingInfo(
+        canvasTime,
+        program.programId
+    );
+
+    const { token_bump, token_pda } = await getTokenOwnerInfo(
+        canvasTime,
+        provider.wallet.publicKey,
+        program.programId
+    );
+
+    const { canvas_time } = await getCanvasInfo(canvasTime, program.programId);
+
+    await program.rpc.removeListing(
+        master_bump,
+        token_bump,
+        escrow_bump,
+        listing_bump,
+        canvas_time,
+        {
+            accounts: {
+                owner: provider.wallet.publicKey,
+                cubedMaster: master_pda,
+                listing: listing_pda,
+                escrowAccount: escrow_pda,
+                tokenAccount: token_pda,
+                systemProgram: SystemProgram.programId,
+                tokenProgram: TOKEN_PROGRAM_ID,
+                rent: SYSVAR_RENT_PUBKEY,
+            },
+        }
+    );
+
+    await axiosPost("check_listing", { time: canvasTime });
+}
+
+export async function buyMosaic(
+    provider: Provider,
+    program: Program<Cubed>,
+    owner: PublicKey,
+    canvasTime: number
+) {
+    const { master_bump, master_pda } = await getDefaultAddresses(program);
+
+    const { escrow_pda, escrow_bump } = await getListingEscrowAccountInfo(
+        canvasTime,
+        program.programId
+    );
+
+    const { mint_bump, mint_pda } = await getMintInfo(
+        canvasTime,
+        program.programId
+    );
+
+    const { listing_pda, listing_bump } = await getMosaicListingInfo(
+        canvasTime,
+        program.programId
+    );
+
+    const { token_bump, token_pda } = await getTokenOwnerInfo(
+        canvasTime,
+        provider.wallet.publicKey,
+        program.programId
+    );
+
+    const { canvas_time } = await getCanvasInfo(canvasTime, program.programId);
+
+    await program.rpc.buyMosaic(
+        master_bump,
+        mint_bump,
+        token_bump,
+        escrow_bump,
+        listing_bump,
+        canvas_time,
+        {
+            accounts: {
+                cubedMaster: master_pda,
+                buyer: provider.wallet.publicKey,
+                owner,
+                mint: mint_pda,
+                listing: listing_pda,
+                buyerAccount: token_pda,
+                escrowAccount: escrow_pda,
+                systemProgram: SystemProgram.programId,
+                tokenProgram: TOKEN_PROGRAM_ID,
+                rent: SYSVAR_RENT_PUBKEY,
+            },
+        }
+    );
+
+    await axiosPost("buy_mosaic", {
+        time: canvasTime,
+        buyer: provider.wallet.publicKey.toString(),
+    });
 }

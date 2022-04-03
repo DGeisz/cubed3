@@ -28,6 +28,12 @@ const CubePlacementSchema = new Schema<CubePlacement>({
   },
 });
 
+export enum MarketplaceInfo {
+  None,
+  Listing,
+  Auction,
+}
+
 interface Canvas {
   artist: string;
   time: number;
@@ -38,6 +44,8 @@ interface Canvas {
   state of the canvas is so that we prevent data loss */
   intendedCubes: CubePlacement[];
   finished: boolean;
+  marketplaceInfo: MarketplaceInfo;
+  marketplacePrice: number;
 }
 
 /* Canvas */
@@ -70,6 +78,14 @@ const CanvasSchema = new Schema<Canvas>({
   finished: {
     type: Boolean,
     required: true,
+  },
+  marketplaceInfo: {
+    type: Number,
+    require: true,
+  },
+  marketplacePrice: {
+    type: Number,
+    require: true,
   },
 });
 

@@ -12,6 +12,7 @@ import {
   getArtistCanvases,
   getCanvasByTime,
 } from "../handlers/get_canvases";
+import { checkMosaicListing } from "../handlers/marketplace";
 import {
   finalizeCanvasUpdate,
   queueCanvasUpdate,
@@ -33,6 +34,9 @@ routes.post("/canvas_by_time", getCanvasByTime);
 
 /* Finish Mosaic */
 routes.post("/finish_mosaic", finishMosaic);
+
+/* Marketplace */
+routes.post("check_listing", checkMosaicListing);
 
 /* DEV ROUTES (BE CAREFUL!) */
 if (process.env.DEV === "true") {

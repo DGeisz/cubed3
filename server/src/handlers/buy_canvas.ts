@@ -1,6 +1,6 @@
 import { Response, Request } from "express";
 import { getCanvas } from "../services/solana/utils/data_fetch";
-import { CanvasModel } from "../models";
+import { CanvasModel, MarketplaceInfo } from "../models";
 import { collectionStringToBytes } from "../models/cubed/hash_utils";
 import _ from "underscore";
 import {
@@ -153,6 +153,8 @@ export async function buyCanvas(
       time,
       finalCubes: [],
       intendedCubes: [],
+      marketplaceInfo: MarketplaceInfo.None,
+      marketplacePrice: 0,
     });
 
     await doc.save();

@@ -24,6 +24,10 @@ export enum CanvasScreen {
     ConfirmRemoveCube,
     MoreCubes,
     ConfirmFinishMosaic,
+    MakeOffer,
+    /* For owner */
+    SetPrice,
+    ChangePrice,
 }
 
 interface StudioStateContext {
