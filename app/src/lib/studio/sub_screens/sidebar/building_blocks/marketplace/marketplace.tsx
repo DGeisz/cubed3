@@ -65,8 +65,8 @@ const Marketplace: React.FC<MarketplaceProps> = (props) => {
     const anyLoading = !marketPlaceLoaded || userLoading || canvasLoading;
 
     const isListingOwner =
-        marketplaceData.listing?.owner.toString() ===
-        provider?.wallet?.publicKey.toString();
+        marketplaceData.listing?.owner?.toString() ===
+        provider?.wallet?.publicKey?.toString();
     const listingActive = marketplaceData.listingEscrow?.amount.toNumber() == 1;
 
     const hasToken = userAccount && userAccount.amount.toNumber() === 1;

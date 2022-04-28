@@ -1,7 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
 import clsx from "clsx";
 import { StudioStyles } from "../../studio_styles";
-import { AiFillHome } from "react-icons/ai";
+import { AiFillHome, AiOutlineTwitter } from "react-icons/ai";
+import { GiHamburgerMenu } from "react-icons/gi";
 import { FaPaintBrush } from "react-icons/fa";
 import { CubeModel } from "../../../../global_architecture/cube_model/cube_model";
 import {
@@ -33,6 +34,7 @@ import {
 import { useProvider } from "../../../service_providers/provider_provider";
 import Marketplace from "./building_blocks/marketplace/marketplace";
 import { useSolCanvas } from "../../routes/canvasTime/api/queries";
+import { isOnMobile } from "../../../../global_utils/device_utils";
 
 interface Props {
     canvasTime: number;
@@ -95,6 +97,12 @@ const Sidebar: React.FC<Props> = (props) => {
     const [mosaicPrice, setMosaicPrice] = useState<number>();
     const [newMosaicPrice, setNewMosaicPrice] = useState<number>();
 
+    console.log("isOnMobile", isOnMobile());
+
+    const [showSideBar, setShowSideBar] = useState<boolean>(!isOnMobile());
+
+    console.log("showSideBar", showSideBar, isOnMobile());
+
     useEffect(() => {
         if (canvasScreen === CanvasScreen.MoreCubes) {
             setNumMoreCubes(undefined);
@@ -124,6 +132,45 @@ const Sidebar: React.FC<Props> = (props) => {
         default: {
             tapestrySolverMessage = "Solve";
         }
+    }
+
+    if (!showSideBar) {
+        return (
+            <div
+                className={clsx(
+                    "absolute top-0 left-0 right-0",
+                    "h-[40px]",
+                    "bg-slate-100 shadow-md",
+                    "flex flex-row"
+                )}
+            >
+                {/* <div className={clsx("flex flex-row w-full")}> */}
+                <div className="flex flex-1 flex-row justify-start items-center px-4">
+                    <Link href="/">
+                        <a className="mr-4">
+                            <AiFillHome
+                                className={clsx("text-cyan-500 cursor-pointer")}
+                            />
+                        </a>
+                    </Link>
+                    <a href="https://twitter.com/cubed_art" target="_blank">
+                        <AiOutlineTwitter
+                            className={clsx("text-cyan-500 cursor-pointer")}
+                            size={24}
+                        />
+                    </a>
+                </div>
+                <div
+                    className="flex flex-1 justify-end items-center px-4"
+                    onClick={() => setShowSideBar(true)}
+                >
+                    <GiHamburgerMenu
+                        className={clsx("text-cyan-500 cursor-pointer")}
+                        size={20}
+                    />
+                </div>
+            </div>
+        );
     }
 
     return (
@@ -158,17 +205,27 @@ const Sidebar: React.FC<Props> = (props) => {
                 >
                     <div className={clsx("flex flex-row flex-grow")}>
                         <div className={clsx("flex flex-1 justify-start")}>
-                            <Link href="/">
-                                <a>
-                                    <AiFillHome
-                                        className={clsx(
-                                            "text-cyan-500 cursor-pointer"
-                                        )}
-                                    />
-                                </a>
-                            </Link>
+                            {!isOnMobile() ? (
+                                <Link href="/">
+                                    <a>
+                                        <AiFillHome
+                                            className={clsx(
+                                                "text-cyan-500 cursor-pointer"
+                                            )}
+                                        />
+                                    </a>
+                                </Link>
+                            ) : (
+                                <GiHamburgerMenu
+                                    className={clsx(
+                                        "text-cyan-500 cursor-pointer"
+                                    )}
+                                    size={20}
+                                    onClick={() => setShowSideBar(false)}
+                                />
+                            )}
                         </div>
-                        <div className="flex flex-1 justify-end">
+                        <div className="flex flex-row flex-1 justify-end">
                             <Link href="/designer">
                                 <a target="_blank">
                                     <FaPaintBrush

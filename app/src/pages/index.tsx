@@ -28,8 +28,9 @@ import axios from "axios";
 import { buyCanvasOnChainAndServer } from "../lib/api/mutations";
 import { useRouter } from "next/router";
 import { DotLoader } from "react-spinners";
+import { AiFillTwitterCircle } from "react-icons/ai";
 
-const DEV = true;
+const DEV = false;
 
 const BUY_CANVAS_LIVE = true;
 const pfpSideLen = 260;
@@ -146,12 +147,22 @@ const Landing: NextPage = () => {
                                     </h1>
                                 </div>
                                 <p className="mt-4 text-3xl font-bold text-slate-200">
-                                    The first{" "}
+                                    Rubiks Cubes meet{" "}
                                     <span className={LandingStyles.SolanaText}>
                                         Solana
                                     </span>
-                                    -native art medium
                                 </p>
+                                <div className="flex justify-center items-center mt-4">
+                                    <a
+                                        href="https://twitter.com/cubed_art"
+                                        target="_blank"
+                                    >
+                                        <AiFillTwitterCircle
+                                            size={35}
+                                            className="text-slate-600"
+                                        />
+                                    </a>
+                                </div>
                             </div>
                             <div className="flex flex-1 justify-center items-center flex-col py-8 px-4">
                                 <div
@@ -328,7 +339,7 @@ const Landing: NextPage = () => {
                             ) : (
                                 <>
                                     If you're new, you might be wondering: How
-                                    does a Solana-native art medium help the{" "}
+                                    does a Solana-native art medium help the
                                     Solana Community? Here are the three biggest
                                     ways:
                                 </>
@@ -507,7 +518,7 @@ const Landing: NextPage = () => {
                                     </li>
                                     <li>
                                         The process of creating a mosaic can be
-                                        cryptographically verified, so each{" "}
+                                        cryptographically verified, so each
                                         Cubed Mosaic is also a proof of the time
                                         and effort needed to create it
                                     </li>

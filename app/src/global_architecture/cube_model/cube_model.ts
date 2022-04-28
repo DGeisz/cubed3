@@ -381,6 +381,7 @@ export interface BoundingBox {
     right: number;
     width: number;
     height: number;
+    center: [number, number];
 }
 
 interface CompressedCubeModel {
@@ -504,9 +505,6 @@ export class CubeModel {
     }
 
     applyCubeTurn(cubeTurn: CubeSyntaxTurn) {
-        // let direction: THREE.Vector3 = new THREE.Vector3();
-        // let pieces: CubeModelPiece[] = [];
-
         const newAlgo = [...this.algorithm];
         newAlgo.push(cubeTurn);
         this.algorithm = cleanAlgorithm(newAlgo);
@@ -515,159 +513,6 @@ export class CubeModel {
             this,
             cubeTurn
         );
-
-        // switch (cubeTurn) {
-        //     case CubeSyntaxTurn.U: {
-        //         direction = negY;
-        //         pieces = this.getUPieces();
-        //         break;
-        //     }
-        //     case CubeSyntaxTurn.u: {
-        //         direction = negY;
-        //         pieces = this.getUPieces(true);
-        //         break;
-        //     }
-        //     case CubeSyntaxTurn.y: {
-        //         direction = negY;
-        //         pieces = this.pieces;
-        //         break;
-        //     }
-        //     case CubeSyntaxTurn.UP: {
-        //         direction = y;
-        //         pieces = this.getUPieces();
-        //         break;
-        //     }
-        //     case CubeSyntaxTurn.up: {
-        //         direction = y;
-        //         pieces = this.getUPieces(true);
-        //         break;
-        //     }
-        //     case CubeSyntaxTurn.yp: {
-        //         direction = y;
-        //         pieces = this.pieces;
-        //         break;
-        //     }
-        //     case CubeSyntaxTurn.D: {
-        //         direction = y;
-        //         pieces = this.getDPieces();
-        //         break;
-        //     }
-        //     case CubeSyntaxTurn.d: {
-        //         direction = y;
-        //         pieces = this.getDPieces(true);
-        //         break;
-        //     }
-        //     case CubeSyntaxTurn.DP: {
-        //         direction = negY;
-        //         pieces = this.getDPieces();
-        //         break;
-        //     }
-        //     case CubeSyntaxTurn.dp: {
-        //         direction = negY;
-        //         pieces = this.getDPieces(true);
-        //         break;
-        //     }
-        //     case CubeSyntaxTurn.F: {
-        //         direction = negZ;
-        //         pieces = this.getFPieces();
-        //         break;
-        //     }
-        //     case CubeSyntaxTurn.f: {
-        //         direction = negZ;
-        //         pieces = this.getFPieces(true);
-        //         break;
-        //     }
-        //     case CubeSyntaxTurn.z: {
-        //         direction = negZ;
-        //         pieces = this.pieces;
-        //         break;
-        //     }
-        //     case CubeSyntaxTurn.FP: {
-        //         direction = z;
-        //         pieces = this.getFPieces();
-        //         break;
-        //     }
-        //     case CubeSyntaxTurn.fp: {
-        //         direction = z;
-        //         pieces = this.getFPieces(true);
-        //         break;
-        //     }
-        //     case CubeSyntaxTurn.zp: {
-        //         direction = z;
-        //         pieces = this.pieces;
-        //         break;
-        //     }
-        //     case CubeSyntaxTurn.B: {
-        //         direction = z;
-        //         pieces = this.getBPieces();
-        //         break;
-        //     }
-        //     case CubeSyntaxTurn.b: {
-        //         direction = z;
-        //         pieces = this.getBPieces(true);
-        //         break;
-        //     }
-        //     case CubeSyntaxTurn.BP: {
-        //         direction = negZ;
-        //         pieces = this.getBPieces();
-        //         break;
-        //     }
-        //     case CubeSyntaxTurn.bp: {
-        //         direction = negZ;
-        //         pieces = this.getBPieces(true);
-        //         break;
-        //     }
-        //     case CubeSyntaxTurn.R: {
-        //         direction = negX;
-        //         pieces = this.getRPieces();
-        //         break;
-        //     }
-        //     case CubeSyntaxTurn.x: {
-        //         direction = negX;
-        //         pieces = this.pieces;
-        //         break;
-        //     }
-        //     case CubeSyntaxTurn.r: {
-        //         direction = negX;
-        //         pieces = this.getRPieces(true);
-        //         break;
-        //     }
-        //     case CubeSyntaxTurn.RP: {
-        //         direction = x;
-        //         pieces = this.getRPieces();
-        //         break;
-        //     }
-        //     case CubeSyntaxTurn.rp: {
-        //         direction = x;
-        //         pieces = this.getRPieces(true);
-        //         break;
-        //     }
-        //     case CubeSyntaxTurn.xp: {
-        //         direction = x;
-        //         pieces = this.pieces;
-        //         break;
-        //     }
-        //     case CubeSyntaxTurn.L: {
-        //         direction = x;
-        //         pieces = this.getLPieces();
-        //         break;
-        //     }
-        //     case CubeSyntaxTurn.l: {
-        //         direction = x;
-        //         pieces = this.getLPieces(true);
-        //         break;
-        //     }
-        //     case CubeSyntaxTurn.LP: {
-        //         direction = negX;
-        //         pieces = this.getLPieces();
-        //         break;
-        //     }
-        //     case CubeSyntaxTurn.lp: {
-        //         direction = negX;
-        //         pieces = this.getLPieces(true);
-        //         break;
-        //     }
-        // }
 
         const tempQuaternion = new THREE.Quaternion();
 
@@ -1433,7 +1278,7 @@ export class CubeTapestryModel {
         return new CubeTapestryModel([...this.cubes, newCube]);
     }
 
-    private getMeanPosition(): THREE.Vector3 {
+    getMeanPosition(): THREE.Vector3 {
         const [sx, sy, sz] = this.cubes.reduce(
             ([x, y, z], { position: [px, py, pz] }) => [x + px, y + py, z + pz],
             [0, 0, 0]
@@ -1451,7 +1296,8 @@ export class CubeTapestryModel {
         fractionComplete: number,
         invert: boolean
     ) {
-        const center = this.getMeanPosition();
+        const { center: c } = this.getBoundingBox();
+        const center = new THREE.Vector3(c[0], c[1], 0);
 
         if (turnIndex == -1) {
             const multiplier = Math.sin((fractionComplete * Math.PI) / 2) ** 2;
@@ -1462,7 +1308,7 @@ export class CubeTapestryModel {
                 newPos.copy(oldPos);
                 newPos.addScaledVector(center, -1);
                 newPos.multiplyScalar(1 + multiplier * EXPAND);
-                newPos.add(center);
+                // newPos.add(center);
 
                 return {
                     cube: invert ? cube.cube : new CubeModel(),
@@ -1478,7 +1324,7 @@ export class CubeTapestryModel {
                 const newPos = new THREE.Vector3(...cube.position);
                 newPos.addScaledVector(center, -1);
                 newPos.multiplyScalar(1 + (1 - multiplier) * EXPAND);
-                newPos.add(center);
+                // newPos.add(center);
 
                 return {
                     cube: invert ? new CubeModel() : cube.cube,
@@ -1492,7 +1338,7 @@ export class CubeTapestryModel {
                 const newPos = new THREE.Vector3(...cube.position);
                 newPos.addScaledVector(center, -1);
                 newPos.multiplyScalar(1 + EXPAND);
-                newPos.add(center);
+                // newPos.add(center);
 
                 const newCube = cube.cube.getTurnIntermediateState(
                     turnIndex,
@@ -1526,6 +1372,7 @@ export class CubeTapestryModel {
                 bottom: 0,
                 width: 0,
                 height: 0,
+                center: [0, 0],
             };
         }
 
@@ -1561,6 +1408,7 @@ export class CubeTapestryModel {
             bottom: bottom - cubeSideLength / 2,
             width: right - left + cubeSideLength,
             height: top - bottom + cubeSideLength,
+            center: [(left + right) / 2, (top + bottom) / 2],
         };
     }
 }

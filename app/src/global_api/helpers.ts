@@ -189,8 +189,6 @@ export async function getTokenOwnerInfo(
 ) {
     const { buffer: canvas_time_buffer } = canvasTimeToBNAndBuffer(canvasTime);
 
-    console.log("buffer", canvas_time_buffer);
-
     const [token_pda, token_bump] = await PublicKey.findProgramAddress(
         [
             Buffer.from(
@@ -201,8 +199,6 @@ export async function getTokenOwnerInfo(
         ],
         program
     );
-
-    console.log("buffer tpda", token_pda.toString());
 
     return { token_pda, token_bump };
 }
