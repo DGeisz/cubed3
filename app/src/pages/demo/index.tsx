@@ -7,21 +7,26 @@ import clsx from "clsx";
 import {
     CanvasCube,
     CubeModel,
+    CubeTapestryModel,
 } from "../../global_architecture/cube_model/cube_model";
 import { Vector3Tuple } from "three";
 import CubeCanvas from "../../lib/studio/sub_screens/cube_canvas/cube_canvas";
 import _ from "underscore";
 import {
+    CanvasScreen,
     ForwardCanvas,
     StudioScreen,
+    useCanvasScreenInfo,
     useNewCubeInfo,
     useStudioScreenInfo,
     useTapestryInfo,
     withStudioState,
 } from "../../lib/studio/service_providers/studio_state_provider/studio_state_provider";
 import Sidebar from "../../lib/studio/sub_screens/sidebar/sidebar";
-import Modal from "../../global_building_blocks/modal/model";
-import DemoTutorial from "../../lib/demo/tutorial/tutorial";
+import {
+    STUDIO_EVENT,
+    useStudioEventHandler,
+} from "../../lib/studio/service_providers/studio_events/studio_event";
 
 interface StudioProps {
     cubePeriod: number;
@@ -89,24 +94,12 @@ const StudioInner: React.FC<StudioProps> = (props) => {
         <>
             <ambientLight />
             <Suspense fallback={null}>
-                {screen === StudioScreen.Editor && (
-                    <CubeEditor turnPeriod={props.cubePeriod} />
-                )}
+                {screen === StudioScreen.Editor && <CubeEditor />}
                 {screen === StudioScreen.Canvas && (
                     <CubeCanvas
-                        newCubeAlgo={newCubeAlgo}
-                        tapestry={tapestry}
-                        setNewCube={(position) => {
-                            const cube = new CubeModel();
-                            cube.applyAlgoTurns(newCubeAlgo || []);
-
-                            addCubeToTapestry({
-                                position,
-                                cube,
-                            });
-
-                            setNewCubeAlgo(undefined);
-                        }}
+                        loading={false}
+                        canvasTime={0}
+                        canvasFinished={false}
                     />
                 )}
             </Suspense>
@@ -135,9 +128,61 @@ const Studio: NextPage = () => {
         }, switchTime);
     };
 
+    const { tapestry, setTapestry, addCubeToTapestry } = useTapestryInfo();
+    const { setCanvasScreen } = useCanvasScreenInfo();
+    const { newCubeAlgo, newCubePosition } = useNewCubeInfo();
+
+    useStudioEventHandler((event, data) => {
+        switch (event) {
+            case STUDIO_EVENT.CONFIRM_ADD_CUBE: {
+                (async () => {
+                    console.log("Starting to confirm");
+                    const cube = new CubeModel();
+                    cube.applyAlgoTurns(newCubeAlgo);
+
+                    addCubeToTapestry({
+                        position: newCubePosition,
+                        cube,
+                    });
+                    setCanvasScreen(CanvasScreen.Default);
+                })();
+
+                break;
+            }
+            case STUDIO_EVENT.CANCEL_CONFIRM_ADD_CUBE: {
+                setCanvasScreen(CanvasScreen.AddCube);
+
+                break;
+            }
+            case STUDIO_EVENT.CONFIRM_REMOVE_CUBE: {
+                (async () => {
+                    setTapestry(
+                        new CubeTapestryModel(
+                            [...tapestry.cubes].filter(
+                                (c) => !_.isEqual(c.position, newCubePosition)
+                            )
+                        )
+                    );
+                    setCanvasScreen(CanvasScreen.Default);
+                })();
+
+                break;
+            }
+            case STUDIO_EVENT.CANCEL_CONFIRM_REMOVE_CUBE: {
+                setCanvasScreen(CanvasScreen.Default);
+                break;
+            }
+            case STUDIO_EVENT.GET_MORE_CUBES: {
+                const numCubes: number = data;
+
+                break;
+            }
+        }
+    });
+
     return (
         <div className="h-full w-full">
-            <DemoTutorial />
+            {/* <DemoTutorial /> */}
             <ForwardCanvas
                 camera={{
                     position: initCameraEditorPosition,
@@ -147,10 +192,7 @@ const Studio: NextPage = () => {
                 <color attach="background" args={["white"]} />
                 <StudioInner cubePeriod={cubePeriod} />
             </ForwardCanvas>
-            <Sidebar
-                switchScreens={fancySwitch}
-                setCubeEditorPeriod={setCubePeriod}
-            />
+            <Sidebar canvasTime={0} switchScreens={fancySwitch} />
             <div
                 className={clsx(
                     "absolute inset-0",

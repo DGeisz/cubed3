@@ -57,13 +57,22 @@ class SolCanvasDirectory {
 
 const solCanvasDirectory = new SolCanvasDirectory();
 
-export function useSolCanvas(time: number) {
+export function useSolCanvas(time: number, overrideCanvasFinished?: boolean) {
     const { program } = useProvider();
 
     const fetch = useFetch(async () => {
-        const { canvas_pda } = await getCanvasInfo(time, program.programId);
+        if (time === 0 && !overrideCanvasFinished) {
+            return undefined;
+        } else if (overrideCanvasFinished) {
+            return {
+                finished: true,
+                unusedCubes: 0,
+            };
+        } else {
+            const { canvas_pda } = await getCanvasInfo(time, program.programId);
 
-        return await program.account.cubedCanvas.fetch(canvas_pda);
+            return await program.account.cubedCanvas.fetch(canvas_pda);
+        }
     }, [time, program]);
 
     useEffect(() => {

@@ -19,10 +19,12 @@ exports.routes.post("/all_canvases", get_canvases_1.getAllCanvases);
 exports.routes.post("/collection_canvases", get_canvases_1.getAllCollectionCanvases);
 exports.routes.post("/artist_canvases", get_canvases_1.getArtistCanvases);
 exports.routes.post("/canvas_by_time", get_canvases_1.getCanvasByTime);
+exports.routes.post("/query_canvases", get_canvases_1.getQueryCanvases);
 /* Finish Mosaic */
 exports.routes.post("/finish_mosaic", finish_mosaic_1.finishMosaic);
 /* Marketplace */
-exports.routes.post("check_listing", marketplace_1.checkMosaicListing);
+exports.routes.post("/check_listing", marketplace_1.checkMosaicListing);
+exports.routes.post("/buy_mosaic", marketplace_1.buyMosaic);
 /* DEV ROUTES (BE CAREFUL!) */
 if (process.env.DEV === "true") {
     exports.routes.post("/delete_everything", delete_everything_1.deleteEverything);

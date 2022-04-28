@@ -6,6 +6,8 @@ import { Vector3Tuple } from "three";
 import {
     CubeModel,
     CubeTapestryModel,
+    StickerColor,
+    stickerColorToHex,
 } from "../../../../global_architecture/cube_model/cube_model";
 import { useForceRerender } from "../../../../global_utils/react";
 import { cubeSideLength } from "../../../../global_constants/cube_dimensions";
@@ -25,7 +27,16 @@ import {
 interface Props {
     loading: boolean;
     canvasTime: number;
+    canvasFinished: boolean;
 }
+
+const box = new THREE.BoxBufferGeometry(10, 10, 10);
+const material = (sticker: StickerColor) =>
+    new THREE.MeshStandardMaterial({
+        color: stickerColorToHex(sticker),
+        side: THREE.DoubleSide,
+        transparent: true,
+    });
 
 const CubeCanvas: React.FC<Props> = (props) => {
     const { canvasScreen, setCanvasScreen } = useCanvasScreenInfo();
@@ -178,7 +189,21 @@ const CubeCanvas: React.FC<Props> = (props) => {
         return (
             <>
                 <group>
-                    <CubeTapestry tapestry={finalTap} />
+                    <CubeTapestry
+                        tapestry={finalTap}
+                        dynamicTapestry={props.canvasFinished}
+                    />
+                    {/* <mesh
+                        geometry={box}
+                        material={[
+                            material(StickerColor.Red),
+                            material(StickerColor.Orange),
+                            material(StickerColor.White),
+                            material(StickerColor.Yellow),
+                            material(StickerColor.Green),
+                            material(StickerColor.Blue),
+                        ]}
+                    /> */}
                     {canvasScreen === CanvasScreen.AddCube && (
                         <>
                             <FixedCube

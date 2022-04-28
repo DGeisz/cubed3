@@ -55,6 +55,7 @@ export const StudioStyles = {
         "cursor-pointer",
         "select-none"
     ),
+    buttonDisabled: clsx("opacity-50"),
     studioButtonDisabled: clsx(
         "bg-cyan-500",
         "opacity-50",
@@ -82,10 +83,31 @@ export const StudioStyles = {
     marketplaceTitle: clsx("text-sm font-bold text-slate-400"),
     marketplaceAmount: clsx(
         "text-2xl font-bold",
-        "text-transparent bg-clip-text bg-gradient-to-tr",
+        "text-transparent bg-clip-text",
+        "bg-gradient-to-tr",
         "from-purple-600 via-sky-600 to-emerald-600"
     ),
     marketplaceButtonContainer: clsx(
         "self-stretch flex justify-center items-center"
+    ),
+    studioOptionActive: clsx(
+        "text-white text-lg",
+        "font-bold",
+        "px-4 py-2",
+        "mx-4",
+        "rounded-full",
+        "bg-gradient-to-tr",
+        "from-purple-600 via-sky-600 to-emerald-600",
+        "cursor-pointer"
+    ),
+    studioOptionInactive: clsx(
+        "text-white text-lg",
+        "font-bold",
+        "px-4 py-2",
+        "mx-4",
+        "rounded-full",
+        // "bg-gradient-to-tr",
+        // "from-purple-600 via-sky-600 to-emerald-600",
+        "cursor-pointer"
     ),
 };

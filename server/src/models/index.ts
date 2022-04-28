@@ -36,6 +36,7 @@ export enum MarketplaceInfo {
 
 interface Canvas {
   artist: string;
+  owner: string;
   time: number;
   price: number;
   collectionName: string;
@@ -51,6 +52,10 @@ interface Canvas {
 /* Canvas */
 const CanvasSchema = new Schema<Canvas>({
   artist: {
+    type: String,
+    required: true,
+  },
+  owner: {
     type: String,
     required: true,
   },

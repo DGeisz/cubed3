@@ -386,8 +386,10 @@ export async function buyMosaic(
         }
     );
 
-    await axiosPost("buy_mosaic", {
+    const a = await axiosPost("buy_mosaic", {
         time: canvasTime,
         buyer: provider.wallet.publicKey.toString(),
     });
+
+    console.log(a.data);
 }

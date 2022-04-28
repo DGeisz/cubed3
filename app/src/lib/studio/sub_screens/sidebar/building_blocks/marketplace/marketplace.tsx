@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import clsx from "clsx";
 import { StudioStyles } from "../../../../studio_styles";
 import {
@@ -9,18 +9,43 @@ import {
 import { DotLoader } from "react-spinners";
 import { useProvider } from "../../../../../service_providers/provider_provider";
 import { isLocalURL } from "next/dist/shared/lib/router/router";
+import {
+    CanvasScreen,
+    useCanvasScreenInfo,
+} from "../../../../service_providers/studio_state_provider/studio_state_provider";
+import { buyMosaic } from "../../../../api/mutations";
 
 interface MarketplaceProps {
     canvasTime: number;
 }
 
 const Marketplace: React.FC<MarketplaceProps> = (props) => {
+    const { program, provider } = useProvider();
+
     const {
         data: marketplaceData,
         loading: marketPlaceLoading,
         error: marketPlaceError,
         refetch: marketPlaceRefetch,
     } = useCanvasMarketplaceInfo(props.canvasTime);
+
+    useEffect(() => {
+        const int = setInterval(() => {
+            marketPlaceRefetch();
+        }, 2000);
+
+        return () => {
+            clearInterval(int);
+        };
+    }, []);
+
+    const [marketPlaceLoaded, setMarketPlaceLoaded] = useState<boolean>(false);
+
+    useEffect(() => {
+        if (!marketPlaceLoading) {
+            setMarketPlaceLoaded(true);
+        }
+    }, [marketPlaceLoading]);
 
     const {
         data: userAccount,
@@ -29,9 +54,7 @@ const Marketplace: React.FC<MarketplaceProps> = (props) => {
         refetch: userRefetch,
     } = useUserTokenAccount(props.canvasTime);
 
-    if (userError) {
-        console.log(userError);
-    }
+    const { setCanvasScreen, canvasScreen } = useCanvasScreenInfo();
 
     const {
         data: canvas,
@@ -39,54 +62,45 @@ const Marketplace: React.FC<MarketplaceProps> = (props) => {
         refetch: canvasRefetch,
     } = useSolCanvas(props.canvasTime);
 
-    console.log(
-        "userLoading",
-        userAccount?.amount.toNumber(),
-        marketplaceData,
-        marketPlaceError
-    );
-
-    const { provider } = useProvider();
-
-    // useEffect(() => {
-    //     const interval = setInterval(() => {
-    //         userRefetch();
-    //     }, 1000);
-
-    //     return () => clearInterval(interval);
-    // });
-
-    const anyLoading = marketPlaceLoading || userLoading || canvasLoading;
+    const anyLoading = !marketPlaceLoaded || userLoading || canvasLoading;
 
     const isListingOwner =
-        marketplaceData.listing?.owner === provider.wallet.publicKey;
+        marketplaceData.listing?.owner.toString() ===
+        provider?.wallet?.publicKey.toString();
+    const listingActive = marketplaceData.listingEscrow?.amount.toNumber() == 1;
 
     const hasToken = userAccount && userAccount.amount.toNumber() === 1;
 
-    /* Is owner if we have  */
-    const isOwner = isListingOwner || hasToken;
+    const isOwner = (isListingOwner && listingActive) || hasToken;
 
     if (isOwner) {
-        if (marketplaceData.listing) {
+        if (marketplaceData.listing && listingActive) {
             return (
                 <MarketPlaceContainer loading={anyLoading}>
-                    <div className={StudioStyles.marketPlaceTextContainer}>
-                        <div className={StudioStyles.marketplaceTitle}>
-                            Price
+                    <>
+                        <div className={StudioStyles.marketPlaceTextContainer}>
+                            <div className={StudioStyles.marketplaceTitle}>
+                                Price
+                            </div>
+                            <div className={StudioStyles.marketplaceAmount}>
+                                ◎{marketplaceData.listing.price.toNumber()}
+                            </div>
                         </div>
-                        <div className={StudioStyles.marketplaceAmount}>
-                            ◎{marketplaceData.listing.price}
+                        <div
+                            className={clsx(
+                                StudioStyles.marketplaceButtonContainer
+                            )}
+                        >
+                            <div
+                                className={StudioStyles.smallButton}
+                                onClick={() =>
+                                    setCanvasScreen(CanvasScreen.ChangePrice)
+                                }
+                            >
+                                Change Price
+                            </div>
                         </div>
-                    </div>
-                    <div
-                        className={clsx(
-                            StudioStyles.marketplaceButtonContainer
-                        )}
-                    >
-                        <div className={StudioStyles.smallButton}>
-                            Change Price
-                        </div>
-                    </div>
+                    </>
                 </MarketPlaceContainer>
             );
         } else {
@@ -97,25 +111,50 @@ const Marketplace: React.FC<MarketplaceProps> = (props) => {
                             StudioStyles.marketplaceButtonContainer
                         )}
                     >
-                        <div className={StudioStyles.smallButton}>
+                        <div
+                            className={StudioStyles.smallButton}
+                            onClick={() =>
+                                setCanvasScreen(CanvasScreen.SetPrice)
+                            }
+                        >
                             Set Price
                         </div>
                     </div>
                 </MarketPlaceContainer>
             );
         }
-    } else if (marketplaceData.listing) {
+    } else if (marketplaceData.listing && listingActive) {
         return (
             <MarketPlaceContainer loading={anyLoading}>
-                <div className={StudioStyles.marketPlaceTextContainer}>
-                    <div className={StudioStyles.marketplaceTitle}>Price</div>
-                    <div className={StudioStyles.marketplaceAmount}>
-                        ◎{marketplaceData.listing?.price}
+                <>
+                    <div className={StudioStyles.marketPlaceTextContainer}>
+                        <div className={StudioStyles.marketplaceTitle}>
+                            Price
+                        </div>
+                        <div className={StudioStyles.marketplaceAmount}>
+                            ◎{marketplaceData.listing?.price.toNumber()}
+                        </div>
                     </div>
-                </div>
-                <div className={clsx(StudioStyles.marketplaceButtonContainer)}>
-                    <div className={StudioStyles.smallButton}>Buy Mosaic</div>
-                </div>
+                    <div
+                        className={clsx(
+                            StudioStyles.marketplaceButtonContainer
+                        )}
+                    >
+                        <div
+                            className={StudioStyles.smallButton}
+                            onClick={async () => {
+                                await buyMosaic(
+                                    provider,
+                                    program,
+                                    marketplaceData.listing!.owner,
+                                    props.canvasTime
+                                );
+                            }}
+                        >
+                            Buy Mosaic
+                        </div>
+                    </div>
+                </>
             </MarketPlaceContainer>
         );
     }
@@ -167,103 +206,3 @@ const MarketPlaceContainer: React.FC<MarketplaceContainerProps> = (props) => {
         </div>
     );
 };
-
-{
-    /* <div className={StudioStyles.marketPlaceContainer}>
-                     <div className={StudioStyles.marketPlaceTextContainer}>
-                            <div className={StudioStyles.marketplaceTitle}>
-                                Highest Offer
-                            </div>
-                            <div className={StudioStyles.marketplaceAmount}>
-                                ◎{10.086}
-                            </div>
-                        </div>
-                        <div
-                            className={clsx(
-                                StudioStyles.marketplaceButtonContainer
-                            )}
-                        >
-                            <div className={StudioStyles.smallButton}>
-                                Make Offer
-                            </div>
-                        </div>
-                    </div> */
-}
-// const SetPrice = (
-//         <div
-//             className={clsx(
-//                 StudioStyles.marketPlaceContainer,
-//                 StudioStyles.mpContainerAddOn
-//             )}
-//         >
-//             <div className={clsx(StudioStyles.marketplaceButtonContainer)}>
-//                 <div className={StudioStyles.smallButton}>Set Price</div>
-//             </div>
-//         </div>
-//     );
-
-//     const ChangePrice = (
-//         <div
-//             className={clsx(
-//                 StudioStyles.marketPlaceContainer,
-//                 StudioStyles.mpContainerAddOn
-//             )}
-//         >
-//             <div className={StudioStyles.marketPlaceTextContainer}>
-//                 <div className={StudioStyles.marketplaceTitle}>Price</div>
-//                 <div className={StudioStyles.marketplaceAmount}>
-//                     ◎{marketplaceData.listing?.price}
-//                 </div>
-//             </div>
-//             <div className={clsx(StudioStyles.marketplaceButtonContainer)}>
-//                 <div className={StudioStyles.smallButton}>Change Price</div>
-//             </div>
-//         </div>
-//     );
-
-//     const BuyMosaic = (
-//         <div
-//             className={clsx(
-//                 StudioStyles.marketPlaceContainer,
-//                 StudioStyles.mpContainerAddOn
-//             )}
-//         >
-//             <div className={StudioStyles.marketPlaceTextContainer}>
-//                 <div className={StudioStyles.marketplaceTitle}>Price</div>
-//                 <div className={StudioStyles.marketplaceAmount}>
-//                     ◎{marketplaceData.listing?.price}
-//                 </div>
-//             </div>
-//             <div className={clsx(StudioStyles.marketplaceButtonContainer)}>
-//                 <div className={StudioStyles.smallButton}>Buy Mosaic</div>
-//             </div>
-//         </div>
-//     );
-
-//     const MakeOffer = (
-//         <div className={StudioStyles.marketPlaceContainer}>
-//             <div className={StudioStyles.marketPlaceTextContainer}>
-//                 <div className={StudioStyles.marketplaceTitle}>
-//                     Highest Offer
-//                 </div>
-//                 <div className={StudioStyles.marketplaceAmount}>◎{10.086}</div>
-//             </div>
-//             <div className={clsx(StudioStyles.marketplaceButtonContainer)}>
-//                 <div className={StudioStyles.smallButton}>Make Offer</div>
-//             </div>
-//         </div>
-//     );
-
-//     const AcceptOffer = (
-//         <div className={StudioStyles.marketPlaceContainer}>
-//             <div className={StudioStyles.marketPlaceTextContainer}>
-//                 <div className={StudioStyles.marketplaceTitle}>
-//                     Highest Offer
-//                 </div>
-//                 <div className={StudioStyles.marketplaceAmount}>◎{10.086}</div>
-//             </div>
-//             <div className={clsx(StudioStyles.marketplaceButtonContainer)}>
-//                 <div className={StudioStyles.smallButton}>Make Offer</div>
-//             </div>
-//         </div>
-//     );

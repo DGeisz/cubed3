@@ -1,6 +1,6 @@
 import { Response, Request } from "express";
 import { getCanvas } from "../services/solana/utils/data_fetch";
-import { CanvasModel, MarketplaceInfo } from "../models";
+import { CanvasModel, getMongoCanvas, MarketplaceInfo } from "../models";
 import { collectionStringToBytes } from "../models/cubed/hash_utils";
 import _ from "underscore";
 import {
@@ -147,6 +147,7 @@ export async function buyCanvas(
     /* Alright, now we're going to create the object in mongo */
     const doc = new CanvasModel({
       artist: canvas.artist.toString(),
+      owner: canvas.artist.toString(),
       price: canvas.price,
       finished: canvas.finished,
       collectionName: collectionName,

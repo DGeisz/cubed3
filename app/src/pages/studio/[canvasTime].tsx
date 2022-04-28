@@ -43,6 +43,7 @@ import {
 interface StudioProps {
     loading: boolean;
     canvasTime: number;
+    canvasFinished: boolean;
 }
 
 const initCameraEditorPosition: Vector3Tuple = [5, 8, 15];
@@ -141,7 +142,8 @@ const Studio: NextPage = () => {
     const { setCanvasScreen } = useCanvasScreenInfo();
     const { newCubeAlgo, newCubePosition } = useNewCubeInfo();
 
-    const { refetch: refetchSolCanvas } = useSolCanvas(canvasTime);
+    const { data: canvas, refetch: refetchSolCanvas } =
+        useSolCanvas(canvasTime);
 
     useStudioEventHandler((event, data) => {
         switch (event) {
@@ -260,7 +262,11 @@ const Studio: NextPage = () => {
                 }}
             >
                 <color attach="background" args={["white"]} />
-                <StudioInner loading={loading} canvasTime={canvasTime} />
+                <StudioInner
+                    loading={loading}
+                    canvasTime={canvasTime}
+                    canvasFinished={!!canvas?.finished}
+                />
             </ForwardCanvas>
             <Sidebar canvasTime={canvasTime} switchScreens={fancySwitch} />
             <div

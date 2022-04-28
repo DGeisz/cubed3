@@ -1,13 +1,8 @@
-import { Cubed } from "../types/cubed";
 import * as anchor from "@project-serum/anchor";
 import { PublicKey } from "@solana/web3.js";
-import {
-  CANVAS_SEED,
-  LISTING_SEED_PREFIX,
-  TOKEN_ACCOUNT_SEED_PREFIX,
-} from "../constants";
-import { CubedSolanaProgram } from "../init";
-import { CubeSyntaxTurn } from "../../../models/cubed/cube_model";
+import { CANVAS_SEED, LISTING_SEED_PREFIX } from "../constants";
+import { CubedSolanaProgram, provider } from "../init";
+import { getTokenMaster, getTokenOwnerInfo } from "./helpers";
 
 interface Canvas {
   artist: PublicKey;
@@ -66,16 +61,17 @@ export async function getMosaicListing(time: number): Promise<MosaicListing> {
 }
 
 export async function getTokenAccount(time: number, owner: PublicKey) {
-  const { canvas_time, canvas_time_buffer } = getCanvasInfo(time);
-
-  const [token_pda, token_bump] = await PublicKey.findProgramAddress(
-    [
-      Buffer.from(anchor.utils.bytes.utf8.encode(TOKEN_ACCOUNT_SEED_PREFIX)),
-      canvas_time_buffer,
-      owner.toBytes(),
-    ],
+  const tokenMaster = await getTokenMaster(
+    provider,
+    time,
     CubedSolanaProgram.programId
   );
 
-  // TODO: Need to actually fetch the token account!!
+  const { token_pda } = await getTokenOwnerInfo(
+    time,
+    owner,
+    CubedSolanaProgram.programId
+  );
+
+  return await tokenMaster.getAccountInfo(token_pda);
 }

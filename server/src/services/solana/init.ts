@@ -22,7 +22,7 @@ const opts: ConfirmOptions = {
 // @ts-ignore
 const wallet: Wallet = {};
 
-const provider = new Provider(connection, wallet, opts);
+export const provider = new Provider(connection, wallet, opts);
 
 // @ts-ignore
 export const CubedSolanaProgram = new Program<Cubed>(idl, programID, provider);

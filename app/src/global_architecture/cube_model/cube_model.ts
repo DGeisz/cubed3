@@ -18,6 +18,12 @@ export interface ServerCubePlacement {
     y: number;
 }
 
+export enum MarketplaceInfo {
+    None,
+    Listing,
+    Auction,
+}
+
 export interface ServerCanvas {
     artist: string;
     price: number;
@@ -27,6 +33,9 @@ export interface ServerCanvas {
     /* We tell the server what the next intension for the
   state of the canvas is so that we prevent data loss */
     intendedCubes: ServerCubePlacement[];
+    finished: boolean;
+    marketplaceInfo: MarketplaceInfo;
+    marketplacePrice: number;
 }
 
 export enum FaceOrientation {
@@ -374,6 +383,10 @@ export interface BoundingBox {
     height: number;
 }
 
+interface CompressedCubeModel {
+    algorithm: CubeSyntaxTurn[];
+}
+
 export class CubeModel {
     readonly pieces: CubeModelPiece[];
     algorithm: CubeSyntaxTurn[];
@@ -448,6 +461,12 @@ export class CubeModel {
         }
     }
 
+    compress(): CompressedCubeModel {
+        return {
+            algorithm: this.algorithm,
+        };
+    }
+
     getUPieces(doubleLayer?: boolean): CubeModelPiece[] {
         return this.pieces.filter((piece) => {
             return piece.lastFixedPosition.y > (doubleLayer ? -0.5 : 0.5);
@@ -485,165 +504,170 @@ export class CubeModel {
     }
 
     applyCubeTurn(cubeTurn: CubeSyntaxTurn) {
-        let direction: THREE.Vector3 = new THREE.Vector3();
-        let pieces: CubeModelPiece[] = [];
+        // let direction: THREE.Vector3 = new THREE.Vector3();
+        // let pieces: CubeModelPiece[] = [];
 
         const newAlgo = [...this.algorithm];
         newAlgo.push(cubeTurn);
         this.algorithm = cleanAlgorithm(newAlgo);
 
-        switch (cubeTurn) {
-            case CubeSyntaxTurn.U: {
-                direction = negY;
-                pieces = this.getUPieces();
-                break;
-            }
-            case CubeSyntaxTurn.u: {
-                direction = negY;
-                pieces = this.getUPieces(true);
-                break;
-            }
-            case CubeSyntaxTurn.y: {
-                direction = negY;
-                pieces = this.pieces;
-                break;
-            }
-            case CubeSyntaxTurn.UP: {
-                direction = y;
-                pieces = this.getUPieces();
-                break;
-            }
-            case CubeSyntaxTurn.up: {
-                direction = y;
-                pieces = this.getUPieces(true);
-                break;
-            }
-            case CubeSyntaxTurn.yp: {
-                direction = y;
-                pieces = this.pieces;
-                break;
-            }
-            case CubeSyntaxTurn.D: {
-                direction = y;
-                pieces = this.getDPieces();
-                break;
-            }
-            case CubeSyntaxTurn.d: {
-                direction = y;
-                pieces = this.getDPieces(true);
-                break;
-            }
-            case CubeSyntaxTurn.DP: {
-                direction = negY;
-                pieces = this.getDPieces();
-                break;
-            }
-            case CubeSyntaxTurn.dp: {
-                direction = negY;
-                pieces = this.getDPieces(true);
-                break;
-            }
-            case CubeSyntaxTurn.F: {
-                direction = negZ;
-                pieces = this.getFPieces();
-                break;
-            }
-            case CubeSyntaxTurn.f: {
-                direction = negZ;
-                pieces = this.getFPieces(true);
-                break;
-            }
-            case CubeSyntaxTurn.z: {
-                direction = negZ;
-                pieces = this.pieces;
-                break;
-            }
-            case CubeSyntaxTurn.FP: {
-                direction = z;
-                pieces = this.getFPieces();
-                break;
-            }
-            case CubeSyntaxTurn.fp: {
-                direction = z;
-                pieces = this.getFPieces(true);
-                break;
-            }
-            case CubeSyntaxTurn.zp: {
-                direction = z;
-                pieces = this.pieces;
-                break;
-            }
-            case CubeSyntaxTurn.B: {
-                direction = z;
-                pieces = this.getBPieces();
-                break;
-            }
-            case CubeSyntaxTurn.b: {
-                direction = z;
-                pieces = this.getBPieces(true);
-                break;
-            }
-            case CubeSyntaxTurn.BP: {
-                direction = negZ;
-                pieces = this.getBPieces();
-                break;
-            }
-            case CubeSyntaxTurn.bp: {
-                direction = negZ;
-                pieces = this.getBPieces(true);
-                break;
-            }
-            case CubeSyntaxTurn.R: {
-                direction = negX;
-                pieces = this.getRPieces();
-                break;
-            }
-            case CubeSyntaxTurn.x: {
-                direction = negX;
-                pieces = this.pieces;
-                break;
-            }
-            case CubeSyntaxTurn.r: {
-                direction = negX;
-                pieces = this.getRPieces(true);
-                break;
-            }
-            case CubeSyntaxTurn.RP: {
-                direction = x;
-                pieces = this.getRPieces();
-                break;
-            }
-            case CubeSyntaxTurn.rp: {
-                direction = x;
-                pieces = this.getRPieces(true);
-                break;
-            }
-            case CubeSyntaxTurn.xp: {
-                direction = x;
-                pieces = this.pieces;
-                break;
-            }
-            case CubeSyntaxTurn.L: {
-                direction = x;
-                pieces = this.getLPieces();
-                break;
-            }
-            case CubeSyntaxTurn.l: {
-                direction = x;
-                pieces = this.getLPieces(true);
-                break;
-            }
-            case CubeSyntaxTurn.LP: {
-                direction = negX;
-                pieces = this.getLPieces();
-                break;
-            }
-            case CubeSyntaxTurn.lp: {
-                direction = negX;
-                pieces = this.getLPieces(true);
-                break;
-            }
-        }
+        const { direction, pieces } = getDirectionAndPiecesFromSyntaxTurn(
+            this,
+            cubeTurn
+        );
+
+        // switch (cubeTurn) {
+        //     case CubeSyntaxTurn.U: {
+        //         direction = negY;
+        //         pieces = this.getUPieces();
+        //         break;
+        //     }
+        //     case CubeSyntaxTurn.u: {
+        //         direction = negY;
+        //         pieces = this.getUPieces(true);
+        //         break;
+        //     }
+        //     case CubeSyntaxTurn.y: {
+        //         direction = negY;
+        //         pieces = this.pieces;
+        //         break;
+        //     }
+        //     case CubeSyntaxTurn.UP: {
+        //         direction = y;
+        //         pieces = this.getUPieces();
+        //         break;
+        //     }
+        //     case CubeSyntaxTurn.up: {
+        //         direction = y;
+        //         pieces = this.getUPieces(true);
+        //         break;
+        //     }
+        //     case CubeSyntaxTurn.yp: {
+        //         direction = y;
+        //         pieces = this.pieces;
+        //         break;
+        //     }
+        //     case CubeSyntaxTurn.D: {
+        //         direction = y;
+        //         pieces = this.getDPieces();
+        //         break;
+        //     }
+        //     case CubeSyntaxTurn.d: {
+        //         direction = y;
+        //         pieces = this.getDPieces(true);
+        //         break;
+        //     }
+        //     case CubeSyntaxTurn.DP: {
+        //         direction = negY;
+        //         pieces = this.getDPieces();
+        //         break;
+        //     }
+        //     case CubeSyntaxTurn.dp: {
+        //         direction = negY;
+        //         pieces = this.getDPieces(true);
+        //         break;
+        //     }
+        //     case CubeSyntaxTurn.F: {
+        //         direction = negZ;
+        //         pieces = this.getFPieces();
+        //         break;
+        //     }
+        //     case CubeSyntaxTurn.f: {
+        //         direction = negZ;
+        //         pieces = this.getFPieces(true);
+        //         break;
+        //     }
+        //     case CubeSyntaxTurn.z: {
+        //         direction = negZ;
+        //         pieces = this.pieces;
+        //         break;
+        //     }
+        //     case CubeSyntaxTurn.FP: {
+        //         direction = z;
+        //         pieces = this.getFPieces();
+        //         break;
+        //     }
+        //     case CubeSyntaxTurn.fp: {
+        //         direction = z;
+        //         pieces = this.getFPieces(true);
+        //         break;
+        //     }
+        //     case CubeSyntaxTurn.zp: {
+        //         direction = z;
+        //         pieces = this.pieces;
+        //         break;
+        //     }
+        //     case CubeSyntaxTurn.B: {
+        //         direction = z;
+        //         pieces = this.getBPieces();
+        //         break;
+        //     }
+        //     case CubeSyntaxTurn.b: {
+        //         direction = z;
+        //         pieces = this.getBPieces(true);
+        //         break;
+        //     }
+        //     case CubeSyntaxTurn.BP: {
+        //         direction = negZ;
+        //         pieces = this.getBPieces();
+        //         break;
+        //     }
+        //     case CubeSyntaxTurn.bp: {
+        //         direction = negZ;
+        //         pieces = this.getBPieces(true);
+        //         break;
+        //     }
+        //     case CubeSyntaxTurn.R: {
+        //         direction = negX;
+        //         pieces = this.getRPieces();
+        //         break;
+        //     }
+        //     case CubeSyntaxTurn.x: {
+        //         direction = negX;
+        //         pieces = this.pieces;
+        //         break;
+        //     }
+        //     case CubeSyntaxTurn.r: {
+        //         direction = negX;
+        //         pieces = this.getRPieces(true);
+        //         break;
+        //     }
+        //     case CubeSyntaxTurn.RP: {
+        //         direction = x;
+        //         pieces = this.getRPieces();
+        //         break;
+        //     }
+        //     case CubeSyntaxTurn.rp: {
+        //         direction = x;
+        //         pieces = this.getRPieces(true);
+        //         break;
+        //     }
+        //     case CubeSyntaxTurn.xp: {
+        //         direction = x;
+        //         pieces = this.pieces;
+        //         break;
+        //     }
+        //     case CubeSyntaxTurn.L: {
+        //         direction = x;
+        //         pieces = this.getLPieces();
+        //         break;
+        //     }
+        //     case CubeSyntaxTurn.l: {
+        //         direction = x;
+        //         pieces = this.getLPieces(true);
+        //         break;
+        //     }
+        //     case CubeSyntaxTurn.LP: {
+        //         direction = negX;
+        //         pieces = this.getLPieces();
+        //         break;
+        //     }
+        //     case CubeSyntaxTurn.lp: {
+        //         direction = negX;
+        //         pieces = this.getLPieces(true);
+        //         break;
+        //     }
+        // }
 
         const tempQuaternion = new THREE.Quaternion();
 
@@ -1272,6 +1296,50 @@ export class CubeModel {
             return [];
         }
     }
+
+    getTurnIntermediateState(
+        turnIndex: number,
+        fractionComplete: number,
+        invert: boolean
+    ): CubeModel {
+        // TODO: Investigate whether we need to cache this representation for perforamce
+        /* First make a new cube model */
+        let newCube;
+        let algo;
+
+        if (invert) {
+            newCube = new CubeModel(this);
+            algo = invertAlgo(this.algorithm);
+        } else {
+            newCube = new CubeModel();
+            algo = this.algorithm;
+        }
+
+        newCube.applyAlgoTurns(algo.slice(0, turnIndex));
+
+        let nextTurn = algo[turnIndex];
+
+        if (nextTurn !== undefined) {
+            const { pieces, direction } = getDirectionAndPiecesFromSyntaxTurn(
+                newCube,
+                nextTurn
+            );
+
+            const angle = (Math.PI / 2) * fractionComplete;
+            const q = new THREE.Quaternion();
+            q.setFromAxisAngle(direction, angle);
+
+            pieces.forEach((piece) => {
+                piece.position.copy(piece.lastFixedPosition);
+                piece.position.applyQuaternion(q);
+
+                piece.quaternion.copy(piece.lastFixedQuaternion);
+                piece.quaternion.premultiply(q);
+            });
+        }
+
+        return newCube;
+    }
 }
 
 export interface CubePlacement {
@@ -1317,10 +1385,21 @@ export function positionsEqual(p1: Vector3Tuple, p2: Vector3Tuple): boolean {
     return p1[0] === p2[0] && p1[1] === p2[1] && p1[2] === p2[2];
 }
 
+export interface CompressedCanvasCube {
+    cube: CompressedCubeModel;
+    position: Vector3Tuple;
+}
+
+export interface CompressedTapestry {
+    cubes: CompressedCanvasCube[];
+}
+
 export interface CanvasCube {
     cube: CubeModel;
     position: Vector3Tuple;
 }
+
+const EXPAND = 0.5;
 
 export class CubeTapestryModel {
     cubes: CanvasCube[];
@@ -1329,8 +1408,113 @@ export class CubeTapestryModel {
         this.cubes = cubes || [];
     }
 
+    setFromCompressed(compressedTapestry: CompressedTapestry) {
+        this.cubes = compressedTapestry.cubes.map((cube) => {
+            const newCube = new CubeModel();
+            newCube.applyAlgoTurns(cube.cube.algorithm);
+
+            return {
+                cube: newCube,
+                position: cube.position,
+            };
+        });
+    }
+
+    compress(): CompressedTapestry {
+        return {
+            cubes: this.cubes.map((cube) => ({
+                cube: cube.cube.compress(),
+                position: cube.position,
+            })),
+        };
+    }
+
     newTapestry(newCube: CanvasCube) {
         return new CubeTapestryModel([...this.cubes, newCube]);
+    }
+
+    private getMeanPosition(): THREE.Vector3 {
+        const [sx, sy, sz] = this.cubes.reduce(
+            ([x, y, z], { position: [px, py, pz] }) => [x + px, y + py, z + pz],
+            [0, 0, 0]
+        );
+
+        return new THREE.Vector3(
+            sx / this.cubes.length,
+            sy / this.cubes.length,
+            sz / this.cubes.length
+        );
+    }
+
+    getIntermediateTapestry(
+        turnIndex: number,
+        fractionComplete: number,
+        invert: boolean
+    ) {
+        const center = this.getMeanPosition();
+
+        if (turnIndex == -1) {
+            const multiplier = Math.sin((fractionComplete * Math.PI) / 2) ** 2;
+
+            const newCubes = this.cubes.map((cube) => {
+                const oldPos = new THREE.Vector3(...cube.position);
+                const newPos = new THREE.Vector3();
+                newPos.copy(oldPos);
+                newPos.addScaledVector(center, -1);
+                newPos.multiplyScalar(1 + multiplier * EXPAND);
+                newPos.add(center);
+
+                return {
+                    cube: invert ? cube.cube : new CubeModel(),
+                    position: newPos.toArray(),
+                };
+            });
+
+            return new CubeTapestryModel(newCubes);
+        } else if (turnIndex == this.getMaxAlgorithmLength()) {
+            const multiplier = Math.sin((fractionComplete * Math.PI) / 2) ** 2;
+
+            const newCubes = this.cubes.map((cube) => {
+                const newPos = new THREE.Vector3(...cube.position);
+                newPos.addScaledVector(center, -1);
+                newPos.multiplyScalar(1 + (1 - multiplier) * EXPAND);
+                newPos.add(center);
+
+                return {
+                    cube: invert ? new CubeModel() : cube.cube,
+                    position: newPos.toArray(),
+                };
+            });
+
+            return new CubeTapestryModel(newCubes);
+        } else {
+            const newCubes = this.cubes.map((cube) => {
+                const newPos = new THREE.Vector3(...cube.position);
+                newPos.addScaledVector(center, -1);
+                newPos.multiplyScalar(1 + EXPAND);
+                newPos.add(center);
+
+                const newCube = cube.cube.getTurnIntermediateState(
+                    turnIndex,
+                    fractionComplete,
+                    invert
+                );
+
+                return {
+                    cube: newCube,
+                    position: newPos.toArray(),
+                };
+            });
+
+            return new CubeTapestryModel(newCubes);
+        }
+    }
+
+    getMaxAlgorithmLength() {
+        return this.cubes.reduce(
+            (max, cube) => Math.max(max, cube.cube.algorithm.length),
+            0
+        );
     }
 
     getBoundingBox(): BoundingBox {
@@ -1379,4 +1563,167 @@ export class CubeTapestryModel {
             height: top - bottom + cubeSideLength,
         };
     }
+}
+
+export function getDirectionAndPiecesFromSyntaxTurn(
+    cubeModel: CubeModel,
+    turn: CubeSyntaxTurn
+) {
+    let direction: THREE.Vector3 = new THREE.Vector3();
+    let pieces: CubeModelPiece[] = [];
+
+    switch (turn) {
+        case CubeSyntaxTurn.U: {
+            direction = negY;
+            pieces = cubeModel.getUPieces();
+            break;
+        }
+        case CubeSyntaxTurn.u: {
+            direction = negY;
+            pieces = cubeModel.getUPieces(true);
+            break;
+        }
+        case CubeSyntaxTurn.y: {
+            direction = negY;
+            pieces = cubeModel.pieces;
+            break;
+        }
+        case CubeSyntaxTurn.UP: {
+            direction = y;
+            pieces = cubeModel.getUPieces();
+            break;
+        }
+        case CubeSyntaxTurn.up: {
+            direction = y;
+            pieces = cubeModel.getUPieces(true);
+            break;
+        }
+        case CubeSyntaxTurn.yp: {
+            direction = y;
+            pieces = cubeModel.pieces;
+            break;
+        }
+        case CubeSyntaxTurn.D: {
+            direction = y;
+            pieces = cubeModel.getDPieces();
+            break;
+        }
+        case CubeSyntaxTurn.d: {
+            direction = y;
+            pieces = cubeModel.getDPieces(true);
+            break;
+        }
+        case CubeSyntaxTurn.DP: {
+            direction = negY;
+            pieces = cubeModel.getDPieces();
+            break;
+        }
+        case CubeSyntaxTurn.dp: {
+            direction = negY;
+            pieces = cubeModel.getDPieces(true);
+            break;
+        }
+        case CubeSyntaxTurn.F: {
+            direction = negZ;
+            pieces = cubeModel.getFPieces();
+            break;
+        }
+        case CubeSyntaxTurn.f: {
+            direction = negZ;
+            pieces = cubeModel.getFPieces(true);
+            break;
+        }
+        case CubeSyntaxTurn.z: {
+            direction = negZ;
+            pieces = cubeModel.pieces;
+            break;
+        }
+        case CubeSyntaxTurn.FP: {
+            direction = z;
+            pieces = cubeModel.getFPieces();
+            break;
+        }
+        case CubeSyntaxTurn.fp: {
+            direction = z;
+            pieces = cubeModel.getFPieces(true);
+            break;
+        }
+        case CubeSyntaxTurn.zp: {
+            direction = z;
+            pieces = cubeModel.pieces;
+            break;
+        }
+        case CubeSyntaxTurn.B: {
+            direction = z;
+            pieces = cubeModel.getBPieces();
+            break;
+        }
+        case CubeSyntaxTurn.b: {
+            direction = z;
+            pieces = cubeModel.getBPieces(true);
+            break;
+        }
+        case CubeSyntaxTurn.BP: {
+            direction = negZ;
+            pieces = cubeModel.getBPieces();
+            break;
+        }
+        case CubeSyntaxTurn.bp: {
+            direction = negZ;
+            pieces = cubeModel.getBPieces(true);
+            break;
+        }
+        case CubeSyntaxTurn.R: {
+            direction = negX;
+            pieces = cubeModel.getRPieces();
+            break;
+        }
+        case CubeSyntaxTurn.x: {
+            direction = negX;
+            pieces = cubeModel.pieces;
+            break;
+        }
+        case CubeSyntaxTurn.r: {
+            direction = negX;
+            pieces = cubeModel.getRPieces(true);
+            break;
+        }
+        case CubeSyntaxTurn.RP: {
+            direction = x;
+            pieces = cubeModel.getRPieces();
+            break;
+        }
+        case CubeSyntaxTurn.rp: {
+            direction = x;
+            pieces = cubeModel.getRPieces(true);
+            break;
+        }
+        case CubeSyntaxTurn.xp: {
+            direction = x;
+            pieces = cubeModel.pieces;
+            break;
+        }
+        case CubeSyntaxTurn.L: {
+            direction = x;
+            pieces = cubeModel.getLPieces();
+            break;
+        }
+        case CubeSyntaxTurn.l: {
+            direction = x;
+            pieces = cubeModel.getLPieces(true);
+            break;
+        }
+        case CubeSyntaxTurn.LP: {
+            direction = negX;
+            pieces = cubeModel.getLPieces();
+            break;
+        }
+        case CubeSyntaxTurn.lp: {
+            direction = negX;
+            pieces = cubeModel.getLPieces(true);
+            break;
+        }
+    }
+
+    return { direction, pieces };
 }

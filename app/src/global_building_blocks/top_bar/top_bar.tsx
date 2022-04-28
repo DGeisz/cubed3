@@ -133,9 +133,9 @@ const TopBar: React.FC = () => {
                             </Link>
                         </div>
                         <div className="block">
-                            <Link href="/marketplace">
+                            <Link href="/gallery">
                                 <a className={LandingStyles.HeaderOption}>
-                                    Marketplace
+                                    Gallery
                                 </a>
                             </Link>
                             <Link href="/studio">
@@ -167,9 +167,9 @@ const TopBar: React.FC = () => {
                                 Demo
                             </a>
                         </Link>
-                        <Link href="/marketplace">
+                        <Link href="/gallery">
                             <a className={LandingStyles.HeaderOptionMobile}>
-                                Marketplace
+                                Gallery
                             </a>
                         </Link>
                         <Link href="/studio">

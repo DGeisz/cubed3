@@ -6,6 +6,7 @@ import { FaPaintBrush } from "react-icons/fa";
 import { CubeModel } from "../../../../global_architecture/cube_model/cube_model";
 import {
     CanvasScreen,
+    CubeTapestryState,
     StudioScreen,
     useCanvasScreenInfo,
     useNewCubeInfo,
@@ -16,26 +17,27 @@ import {
 import Link from "next/link";
 import { MosaicTapestryV2 } from "../../../../global_building_blocks/mosaic_tapestry/mosaic_tapestry";
 import {
-    useCanvasMarketplaceInfo,
-    useSolCanvas,
-    useUserTokenAccount,
-} from "../../routes/canvasTime/api/queries";
-import {
     studioEventSystem,
     STUDIO_EVENT,
 } from "../../service_providers/studio_events/studio_event";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
-import { LandingStyles, pinkToPurple } from "../../../landing_styles";
+import { LandingStyles } from "../../../landing_styles";
 import { CUBE_PRICE } from "../../../../global_chain/chain_constants";
 import { DotLoader } from "react-spinners";
-import { finishMosaic, listMosaic } from "../../api/mutations";
+import {
+    changeListing,
+    finishMosaic,
+    listMosaic,
+    removeListing,
+} from "../../api/mutations";
 import { useProvider } from "../../../service_providers/provider_provider";
-import { clearScreenDown } from "readline";
 import Marketplace from "./building_blocks/marketplace/marketplace";
+import { useSolCanvas } from "../../routes/canvasTime/api/queries";
 
 interface Props {
     canvasTime: number;
     switchScreens: () => void;
+    overrideCanvasFinished?: boolean;
 }
 
 const minPeriod = 0.1;
@@ -51,14 +53,18 @@ function showSidebarMosaic(
 const Sidebar: React.FC<Props> = (props) => {
     const { newCubeAlgo, undo, setNewCubeAlgo } = useNewCubeInfo();
     const { studioScreen } = useStudioScreenInfo();
-    // const { canvasScreen, setCanvasScreen } = useCanvasScreenInfo();
-    const { setCanvasScreen } = useCanvasScreenInfo();
+    const { canvasScreen, setCanvasScreen } = useCanvasScreenInfo();
     const { tapestry } = useTapestryInfo();
 
-    const canvasScreen: CanvasScreen = CanvasScreen.SetPrice;
-
     const { program, provider } = useProvider();
-    const { turnPeriod, setPeriod } = useStudioState();
+    const {
+        turnPeriod,
+        setPeriod,
+        tapestryState,
+        setTapestryState,
+        performanceCubes,
+        setPerformanceCubes,
+    } = useStudioState();
     const [loading, setLoading] = useState<boolean>(false);
     const [finishCanvasLoading, setFinishCanvasLoading] =
         useState<boolean>(false);
@@ -67,7 +73,7 @@ const Sidebar: React.FC<Props> = (props) => {
         data: canvas,
         loading: canvasLoading,
         refetch: canvasRefetch,
-    } = useSolCanvas(props.canvasTime);
+    } = useSolCanvas(props.canvasTime, props.overrideCanvasFinished);
 
     const [initialLoading, setInitialLoading] = useState<boolean>(true);
 
@@ -96,6 +102,30 @@ const Sidebar: React.FC<Props> = (props) => {
         setLoading(false);
     }, [canvasScreen]);
 
+    let tapestrySolverMessage;
+
+    switch (tapestryState) {
+        case CubeTapestryState.Solved: {
+            tapestrySolverMessage = "Unsolve";
+            break;
+        }
+        case CubeTapestryState.Unsolved: {
+            tapestrySolverMessage = "Solve";
+            break;
+        }
+        case CubeTapestryState.Solving: {
+            tapestrySolverMessage = "Solving...";
+            break;
+        }
+        case CubeTapestryState.UnSolving: {
+            tapestrySolverMessage = "Unsolving...";
+            break;
+        }
+        default: {
+            tapestrySolverMessage = "Solve";
+        }
+    }
+
     return (
         <>
             <div
@@ -108,11 +138,17 @@ const Sidebar: React.FC<Props> = (props) => {
                     "flex flex-col"
                 )}
             >
-                <div className={clsx("flex justify-center items-center mb-4")}>
-                    <WalletMultiButton
-                        className={clsx(LandingStyles.WalletButton)}
-                    />
-                </div>
+                {props.canvasTime > 0 && (
+                    <div
+                        className={clsx(
+                            "flex justify-center items-center mb-4"
+                        )}
+                    >
+                        <WalletMultiButton
+                            className={clsx(LandingStyles.WalletButton)}
+                        />
+                    </div>
+                )}
                 <div
                     className={clsx(
                         "flex flex-row",
@@ -171,9 +207,36 @@ const Sidebar: React.FC<Props> = (props) => {
                                                 }}
                                             >
                                                 {hasMoreCubes
-                                                    ? "Add Cube"
+                                                    ? "Add Cube "
                                                     : "Need More Cubes!"}
                                             </div>
+                                            {/* <div
+                                                className={
+                                                    StudioStyles.studioButton
+                                                }
+                                                onClick={() => {
+                                                    const a =
+                                                        document.createElement(
+                                                            "a"
+                                                        );
+                                                    const file = new Blob(
+                                                        [
+                                                            JSON.stringify(
+                                                                tapestry.compress()
+                                                            ),
+                                                        ],
+                                                        { type: "text/plain" }
+                                                    );
+                                                    a.href =
+                                                        URL.createObjectURL(
+                                                            file
+                                                        );
+                                                    a.download = "mario.json";
+                                                    a.click();
+                                                }}
+                                            >
+                                                Save JSON
+                                            </div> */}
                                         </div>
                                         {tapestry.cubes.length > 0 && (
                                             <>
@@ -391,6 +454,8 @@ const Sidebar: React.FC<Props> = (props) => {
                                                         setCanvasScreen(
                                                             CanvasScreen.Default
                                                         );
+
+                                                        canvasRefetch();
                                                     }}
                                                 >
                                                     Confirm
@@ -586,7 +651,8 @@ const Sidebar: React.FC<Props> = (props) => {
                                                 >
                                                     <div
                                                         className={
-                                                            numMoreCubes
+                                                            mosaicPrice !==
+                                                            undefined
                                                                 ? StudioStyles.studioButton
                                                                 : StudioStyles.studioButtonDisabled
                                                         }
@@ -702,12 +768,32 @@ const Sidebar: React.FC<Props> = (props) => {
                                                         className={
                                                             StudioStyles.studioButton
                                                         }
-                                                        onClick={() => {
-                                                            studioEventSystem.emit(
-                                                                STUDIO_EVENT.GET_MORE_CUBES,
-                                                                numMoreCubes
-                                                            );
-                                                            setLoading(true);
+                                                        onClick={async () => {
+                                                            if (
+                                                                newMosaicPrice !==
+                                                                undefined
+                                                            ) {
+                                                                setLoading(
+                                                                    true
+                                                                );
+
+                                                                try {
+                                                                    await changeListing(
+                                                                        provider,
+                                                                        program,
+                                                                        props.canvasTime,
+                                                                        newMosaicPrice
+                                                                    );
+                                                                } catch (_e) {}
+
+                                                                setLoading(
+                                                                    false
+                                                                );
+
+                                                                setCanvasScreen(
+                                                                    CanvasScreen.Default
+                                                                );
+                                                            }
                                                         }}
                                                     >
                                                         Confirm
@@ -746,6 +832,23 @@ const Sidebar: React.FC<Props> = (props) => {
                                                         className={
                                                             StudioStyles.studioButton
                                                         }
+                                                        onClick={async () => {
+                                                            setLoading(true);
+
+                                                            try {
+                                                                await removeListing(
+                                                                    provider,
+                                                                    program,
+                                                                    props.canvasTime
+                                                                );
+                                                            } catch (_e) {}
+
+                                                            setLoading(false);
+                                                            setCanvasScreen(
+                                                                CanvasScreen.Default
+                                                            );
+                                                            canvasRefetch();
+                                                        }}
                                                     >
                                                         Remove Listing
                                                     </div>
@@ -872,7 +975,7 @@ const Sidebar: React.FC<Props> = (props) => {
                                 canvasScreen
                             ) && (
                                 <>
-                                    <div className="flex justify-center mb-6">
+                                    <div className="flex flex-col items-center justify-center mb-6">
                                         <div
                                             className={clsx(
                                                 "bg-slate-100 px-4 pb-2 pt-0 rounded-md shadow-md flex flex-col items-center",
@@ -931,6 +1034,96 @@ const Sidebar: React.FC<Props> = (props) => {
                                                 </div>
                                             )}
                                         </div>
+                                        {canvas?.finished && (
+                                            <div>
+                                                <div className="w-full mb-4 mt-2">
+                                                    <div className="flex translate-y-2">
+                                                        <div className="flex flex-1 justify-start font-bold text-sm text-teal-600 select-none">
+                                                            Fast
+                                                        </div>
+                                                        <div className="flex flex-1 justify-end font-bold text-sm text-teal-600 select-none">
+                                                            Slow
+                                                        </div>
+                                                    </div>
+                                                    <input
+                                                        onChange={(e) => {
+                                                            const val =
+                                                                parseFloat(
+                                                                    e.target
+                                                                        .value
+                                                                );
+                                                            setPeriod(val);
+                                                        }}
+                                                        value={turnPeriod}
+                                                        type={"range"}
+                                                        min={minPeriod}
+                                                        max={maxPeriod}
+                                                        step={0.01}
+                                                        placeholder="speed"
+                                                    />
+                                                </div>
+                                                <div className="flex justify-center mb-6">
+                                                    <div
+                                                        className={
+                                                            "font-bold text-sm text-teal-600 mr-2 -translate-y-0.5"
+                                                        }
+                                                    >
+                                                        Pixel Cubes
+                                                    </div>
+                                                    <input
+                                                        onChange={(e) => {
+                                                            console.log(
+                                                                "target",
+                                                                e.target.checked
+                                                            );
+                                                            setPerformanceCubes(
+                                                                e.target.checked
+                                                            );
+                                                        }}
+                                                        checked={
+                                                            performanceCubes
+                                                        }
+                                                        type={"checkbox"}
+                                                        placeholder="speed"
+                                                    />
+                                                </div>
+                                                <div
+                                                    className={clsx(
+                                                        StudioStyles.buttonContainer,
+                                                        (tapestryState ===
+                                                            CubeTapestryState.Solving ||
+                                                            tapestryState ===
+                                                                CubeTapestryState.UnSolving) &&
+                                                            StudioStyles.buttonDisabled
+                                                    )}
+                                                    onClick={() => {
+                                                        if (
+                                                            tapestryState ===
+                                                            CubeTapestryState.Solved
+                                                        ) {
+                                                            setTapestryState(
+                                                                CubeTapestryState.UnSolving
+                                                            );
+                                                        } else if (
+                                                            tapestryState ===
+                                                            CubeTapestryState.Unsolved
+                                                        ) {
+                                                            setTapestryState(
+                                                                CubeTapestryState.Solving
+                                                            );
+                                                        }
+                                                    }}
+                                                >
+                                                    <div
+                                                        className={
+                                                            StudioStyles.smallButton
+                                                        }
+                                                    >
+                                                        {tapestrySolverMessage}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
                                 </>
                             )}

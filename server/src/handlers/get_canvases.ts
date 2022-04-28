@@ -5,6 +5,14 @@ export async function getAllCanvases(req: Request, res: Response) {
   res.json(await CanvasModel.find());
 }
 
+export async function getQueryCanvases(req: Request, res: Response) {
+  try {
+    return res.json(await CanvasModel.find(req.body));
+  } catch (_e) {
+    return res.status(400).send();
+  }
+}
+
 export async function getArtistCanvases(
   req: Request<any, any, { artist: string }>,
   res: Response

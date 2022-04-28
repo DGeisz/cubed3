@@ -972,3 +972,166 @@ export class CubeTapestryModel {
     };
   }
 }
+
+export function getDirectionAndPiecesFromSyntaxTurn(
+  cubeModel: CubeModel,
+  turn: CubeSyntaxTurn
+) {
+  let direction: THREE.Vector3 = new THREE.Vector3();
+  let pieces: CubeModelPiece[] = [];
+
+  switch (turn) {
+    case CubeSyntaxTurn.U: {
+      direction = negY;
+      pieces = cubeModel.getUPieces();
+      break;
+    }
+    case CubeSyntaxTurn.u: {
+      direction = negY;
+      pieces = cubeModel.getUPieces(true);
+      break;
+    }
+    case CubeSyntaxTurn.y: {
+      direction = negY;
+      pieces = cubeModel.pieces;
+      break;
+    }
+    case CubeSyntaxTurn.UP: {
+      direction = y;
+      pieces = cubeModel.getUPieces();
+      break;
+    }
+    case CubeSyntaxTurn.up: {
+      direction = y;
+      pieces = cubeModel.getUPieces(true);
+      break;
+    }
+    case CubeSyntaxTurn.yp: {
+      direction = y;
+      pieces = cubeModel.pieces;
+      break;
+    }
+    case CubeSyntaxTurn.D: {
+      direction = y;
+      pieces = cubeModel.getDPieces();
+      break;
+    }
+    case CubeSyntaxTurn.d: {
+      direction = y;
+      pieces = cubeModel.getDPieces(true);
+      break;
+    }
+    case CubeSyntaxTurn.DP: {
+      direction = negY;
+      pieces = cubeModel.getDPieces();
+      break;
+    }
+    case CubeSyntaxTurn.dp: {
+      direction = negY;
+      pieces = cubeModel.getDPieces(true);
+      break;
+    }
+    case CubeSyntaxTurn.F: {
+      direction = negZ;
+      pieces = cubeModel.getFPieces();
+      break;
+    }
+    case CubeSyntaxTurn.f: {
+      direction = negZ;
+      pieces = cubeModel.getFPieces(true);
+      break;
+    }
+    case CubeSyntaxTurn.z: {
+      direction = negZ;
+      pieces = cubeModel.pieces;
+      break;
+    }
+    case CubeSyntaxTurn.FP: {
+      direction = z;
+      pieces = cubeModel.getFPieces();
+      break;
+    }
+    case CubeSyntaxTurn.fp: {
+      direction = z;
+      pieces = cubeModel.getFPieces(true);
+      break;
+    }
+    case CubeSyntaxTurn.zp: {
+      direction = z;
+      pieces = cubeModel.pieces;
+      break;
+    }
+    case CubeSyntaxTurn.B: {
+      direction = z;
+      pieces = cubeModel.getBPieces();
+      break;
+    }
+    case CubeSyntaxTurn.b: {
+      direction = z;
+      pieces = cubeModel.getBPieces(true);
+      break;
+    }
+    case CubeSyntaxTurn.BP: {
+      direction = negZ;
+      pieces = cubeModel.getBPieces();
+      break;
+    }
+    case CubeSyntaxTurn.bp: {
+      direction = negZ;
+      pieces = cubeModel.getBPieces(true);
+      break;
+    }
+    case CubeSyntaxTurn.R: {
+      direction = negX;
+      pieces = cubeModel.getRPieces();
+      break;
+    }
+    case CubeSyntaxTurn.x: {
+      direction = negX;
+      pieces = cubeModel.pieces;
+      break;
+    }
+    case CubeSyntaxTurn.r: {
+      direction = negX;
+      pieces = cubeModel.getRPieces(true);
+      break;
+    }
+    case CubeSyntaxTurn.RP: {
+      direction = x;
+      pieces = cubeModel.getRPieces();
+      break;
+    }
+    case CubeSyntaxTurn.rp: {
+      direction = x;
+      pieces = cubeModel.getRPieces(true);
+      break;
+    }
+    case CubeSyntaxTurn.xp: {
+      direction = x;
+      pieces = cubeModel.pieces;
+      break;
+    }
+    case CubeSyntaxTurn.L: {
+      direction = x;
+      pieces = cubeModel.getLPieces();
+      break;
+    }
+    case CubeSyntaxTurn.l: {
+      direction = x;
+      pieces = cubeModel.getLPieces(true);
+      break;
+    }
+    case CubeSyntaxTurn.LP: {
+      direction = negX;
+      pieces = cubeModel.getLPieces();
+      break;
+    }
+    case CubeSyntaxTurn.lp: {
+      direction = negX;
+      pieces = cubeModel.getLPieces(true);
+      break;
+    }
+  }
+
+  return { direction, pieces };
+}

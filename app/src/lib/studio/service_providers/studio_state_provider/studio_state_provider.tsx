@@ -16,6 +16,13 @@ export enum StudioScreen {
     Canvas,
 }
 
+export enum CubeTapestryState {
+    Unsolved,
+    Solving,
+    Solved,
+    UnSolving,
+}
+
 export enum CanvasScreen {
     Default,
     AddCube,
@@ -45,6 +52,10 @@ interface StudioStateContext {
     setPeriod: (p: number) => void;
     handleUndo: () => void;
     setHandleUndo: (handler: () => () => void) => void;
+    tapestryState: CubeTapestryState;
+    setTapestryState: (state: CubeTapestryState) => void;
+    performanceCubes: boolean;
+    setPerformanceCubes: (p: boolean) => void;
 }
 
 export const StudioContext = React.createContext<StudioStateContext>({
@@ -62,6 +73,11 @@ export const StudioContext = React.createContext<StudioStateContext>({
     setPeriod: () => {},
     handleUndo: () => {},
     setHandleUndo: () => () => {},
+    tapestryState: CubeTapestryState.Unsolved,
+    setTapestryState: () => {},
+
+    performanceCubes: false,
+    setPerformanceCubes: () => {},
 });
 
 export function withStudioState<P>(Component: React.FC<P>): React.FC<P> {
@@ -85,6 +101,13 @@ export function withStudioState<P>(Component: React.FC<P>): React.FC<P> {
             0, 0, 0,
         ]);
 
+        const [tapestryState, setTapestryState] = useState<CubeTapestryState>(
+            CubeTapestryState.Solving
+        );
+
+        const [performanceCubes, setPerformanceCubes] =
+            useState<boolean>(false);
+
         return (
             <StudioContext.Provider
                 value={{
@@ -102,6 +125,10 @@ export function withStudioState<P>(Component: React.FC<P>): React.FC<P> {
                     setNewCubePosition,
                     handleUndo,
                     setHandleUndo,
+                    tapestryState,
+                    setTapestryState,
+                    performanceCubes,
+                    setPerformanceCubes,
                 }}
             >
                 <Component {...props} />

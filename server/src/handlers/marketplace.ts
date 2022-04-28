@@ -1,10 +1,11 @@
+import { AccountInfo } from "@solana/spl-token";
 import { PublicKey } from "@solana/web3.js";
 import { Response, Request } from "express";
 import _ from "underscore";
 import { getMongoCanvas, MarketplaceInfo } from "../models";
 import {
-  getCanvasInfo,
   getMosaicListing,
+  getTokenAccount,
 } from "../services/solana/utils/data_fetch";
 
 export async function checkMosaicListing(
@@ -46,7 +47,9 @@ export async function buyMosaic(
 ) {
   const { time, buyer } = req.body;
 
-  const mongoCanvas = getMongoCanvas(time);
+  let mongoCanvas;
+
+  mongoCanvas = await getMongoCanvas(time);
 
   if (!mongoCanvas) {
     return res.status(400).send();
@@ -54,14 +57,20 @@ export async function buyMosaic(
 
   const buyerKey = new PublicKey(buyer);
 
-  const { canvas_time, canvas_time_buffer } = getCanvasInfo(time);
+  const buyerTokenAccount = await getTokenAccount(time, buyerKey);
 
-  const [token_pda, token_bump] = await PublicKey.findProgramAddress(
-    [
-      Buffer.from(anchor.utils.bytes.utf8.encode(TOKEN_ACCOUNT_SEED_PREFIX)),
-      canvas_time_buffer,
-      ownerKey.toBytes(),
-    ],
-    program
-  );
+  /* Make sure this person actually owns this */
+  if (buyerTokenAccount.amount.toNumber() !== 1) {
+    return res.status(400).json({
+      message: "You don't own this mosaic!",
+    });
+  }
+
+  mongoCanvas.owner = buyer;
+
+  await mongoCanvas.save();
+
+  return res.json({
+    message: "Everything successfully went through!",
+  });
 }
