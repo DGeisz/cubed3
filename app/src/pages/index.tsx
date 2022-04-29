@@ -4,31 +4,27 @@ import clsx from "clsx";
 import { LandingStyles, pinkToPurple } from "../lib/landing_styles";
 import TopBar from "../global_building_blocks/top_bar/top_bar";
 import { isOnMobile } from "../global_utils/screen";
-import { randomTapestry } from "../global_utils/tapestry_utils";
 import FaqItem from "../lib/building_blocks/faq_item/faq_item";
 import { LineBreak } from "../global_building_blocks/line_break/line_break";
 import BottomBar from "../global_building_blocks/bottom_bar/bottom_bar";
 import _ from "underscore";
-import { MosaicTapestryV2 } from "../global_building_blocks/mosaic_tapestry/mosaic_tapestry";
 import CubeBackground from "../global_building_blocks/cube_background/cube_background";
 require("@solana/wallet-adapter-react-ui/styles.css");
 import { useProvider } from "../lib/service_providers/provider_provider";
 import {
-    buyCanvas,
     getDefaultAddresses,
     initializeCubed,
 } from "../global_chain/chain_methods";
 import { LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js";
 import { priceEmaLamportsToCurrentSol } from "../global_chain/chain_utils";
-import { cubeSideLength } from "../global_constants/cube_dimensions";
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
-import Modal from "../global_building_blocks/modal/model";
 import Image from "next/image";
 import axios from "axios";
 import { buyCanvasOnChainAndServer } from "../lib/api/mutations";
 import { useRouter } from "next/router";
 import { DotLoader } from "react-spinners";
 import { AiFillTwitterCircle } from "react-icons/ai";
+import Link from "next/link";
 
 const DEV = false;
 
@@ -53,6 +49,8 @@ const Landing: NextPage = () => {
     };
 
     const router = useRouter();
+
+    const CubedText = <span className={LandingStyles.SolanaText}>Cubed</span>;
 
     useEffect(() => {
         let master_pda: PublicKey;
@@ -147,7 +145,7 @@ const Landing: NextPage = () => {
                                     </h1>
                                 </div>
                                 <p className="mt-4 text-3xl font-bold text-slate-200">
-                                    Rubiks Cubes meet{" "}
+                                    Rubiks Cube Mosaics just found{" "}
                                     <span className={LandingStyles.SolanaText}>
                                         Solana
                                     </span>
@@ -309,88 +307,63 @@ const Landing: NextPage = () => {
                             </h2>
                         </div>
                         <div className={LandingStyles.ContentText}>
-                            TL;DR: We basically just wanna make cool art with
-                            frens :)
+                            We can all agree that the lack of representation of
+                            Rubiks Cubes in NFT projects is a heinous crime. We
+                            come before you to rectify this horrific injustice.
                             <br />
                             <br />
-                            Cubed aims to unite Solana NFT artists and
-                            communities around the first Solana-native art
-                            medium: Rubiks Cube Mosaics!
-                            {!isOnMobile && (
-                                <>
-                                    <br />
-                                    <br />
-                                    Unlike other NFT projects, each Cubed Canvas
-                                    you own is a canvas that <i>you</i> use to
-                                    create a Rubiks Cube Mosaic! And don't
-                                    worry: even if you've never touched a Rubiks
-                                    Cube before, we've built you all sorts of
-                                    tools that make it super easy to create a
-                                    Mosaic you're proud of.
-                                </>
-                            )}
+                            Is this just another stupid PFP collection?{" "}
+                            <i>HELL</i> no. Oh, then it is just another virtual
+                            Rubiks Cube project? How about you go fuck yourself.
                             <br />
                             <br />
-                            {isOnMobile ? (
-                                <>
-                                    Here's why a blockchain-native art medium is
-                                    great:
-                                </>
-                            ) : (
-                                <>
-                                    If you're new, you might be wondering: How
-                                    does a Solana-native art medium help the
-                                    Solana Community? Here are the three biggest
-                                    ways:
-                                </>
-                            )}
+                            Well then, what is it? We built a way for <i>
+                                you
+                            </i>{" "}
+                            to create an aesthetic masterpiece using nought but
+                            the puzzle cube that has captured the imagination of
+                            a generation. Need to see it for yourself? Ok,
+                            Doubting Thomas.{" "}
+                            <Link href="/mario">
+                                <a className="text-sky-400">Check this out</a>
+                            </Link>{" "}
+                            and see what happens when you doubt us.
+                            <br />
+                            <br />
+                            So who should sip from this glorious metaphorical
+                            chalice? (The chalice being{" "}
+                            <span className={LandingStyles.SolanaText}>
+                                Cubed
+                            </span>
+                            ... you get it)
                             <div className={LandingStyles.AboutListItem}>
-                                1. Amazing for Artists
+                                1. Cubing Fans
                             </div>
-                            Whether you're a NFT newbie, veteran, or just enjoy
-                            creating art as a hobby, the Cubed Community gives
-                            you an immediate audience for your latest creations!
-                            {!isOnMobile && (
-                                <>
-                                    <br />
-                                    <br />
-                                    By building a community around an art medium
-                                    instead of a specific project or artist,
-                                    we're effectively creating the most
-                                    accessible space for new/small-time artists!
-                                </>
-                            )}
+                            Whether you're a speed cuber or a puzzle cube
+                            collector, {CubedText} gives you a totally new way
+                            to experience the magic of the cube. It's also an
+                            excellent excuse to learn a thing or two about
+                            crypto if you haven't already had the chance.
                             <div className={LandingStyles.AboutListItem}>
-                                2. Amazing for NFT Communities
+                                2. Artists who are... out there :)
                             </div>
-                            {!isOnMobile && (
-                                <>
-                                    The communities that form around successful
-                                    NFT projects are some of the most magical
-                                    spaces on the internet.
-                                    <br />
-                                    <br />
-                                </>
-                            )}
-                            By participating in Cubed Collections you're able to
-                            rep your favorite NFT projects while engaging with
-                            the broader Solana NFT ecosystem!
+                            If you like making art, and you're not afraid to get
+                            funky, {CubedText} gives you a way to create art
+                            that's sure to enrapture you and delight even your
+                            most dogmatic followers.
                             <div className={LandingStyles.AboutListItem}>
-                                3. Art with Intrinsic Value
+                                3. Crypto Collectors & Investors
                             </div>
-                            The process of creating a Cubed Mosaic is
-                            cryptographically secured on the Solana blockchain.
+                            Hey crypto people? Tired of seeing another stupid
+                            BAYC derivative sell for $70k? Even though it's a
+                            heap of hot garbage?
                             <br />
                             <br />
-                            That means that when you see a Cubed Mosaic, you're
-                            also seeing a proof of the time, effort, and capital
-                            needed to create the beautiful piece of art!
-                            {!isOnMobile && (
-                                <>
-                                    This proof of investment imbues each mosaic
-                                    with intrinsic value.
-                                </>
-                            )}
+                            It takes time, effort, money and dedication to
+                            produce a {CubedText} mosaic. So when you buy one,
+                            you're buying something closer to a Mona Lisa than
+                            something that might as well be a Google search
+                            result of "dumb monkey clipart."
                         </div>
                     </div>
                     <div className={clsx(LandingStyles.ContentContainer)}>
@@ -406,53 +379,60 @@ const Landing: NextPage = () => {
                             </h2>
                         </div>
                         <div className={LandingStyles.ContentText}>
+                            Sike, bitches! If you thought this was just another
+                            idiotic PFP collection, kindly slink back to
+                            whatever Discord server you just squelched out of.
                             <div className={LandingStyles.AboutListItem}>
-                                Phase 1
+                                ...so there's no Roadmap?
                             </div>
                             <div className={LandingStyles.SubHeader}>
-                                Launch
+                                Well, not quite
                             </div>
-                            Artists can start creating Cubed Mosaics. The price
-                            of a canvas adjusts dynamically itself so that one
-                            canvas is purchased per hour on average.
-                            <div className={LandingStyles.SubHeader}>
-                                Early Artist Cube Airdrop
-                            </div>
-                            Selected early artists will be airdropped cubes to
-                            aid in the creation of their first Cube Mosaics
+                            <i>You're</i> the roadmap! {CubedText} gives people
+                            a way to create art, so {CubedText} really takes
+                            flight when people create Rubiks Cube masterpieces!
                             <div className={LandingStyles.AboutListItem}>
-                                Phase 2
+                                So what's currently available?
                             </div>
                             <div className={LandingStyles.SubHeader}>
-                                Marketplace Opens
+                                Mosaic Studio
                             </div>
-                            Users will be able to buy, sell, and auction their
-                            Mosaics on our dedicated Marketplace!
+                            We're built you all the tools you need to design,
+                            create, and tweak our own Rubiks Cube Mosaics
+                            (kindly take a peak at our{" "}
+                            <Link href="/demo">
+                                <a className="text-sky-400">demo</a>
+                            </Link>
+                            )
                             <div className={LandingStyles.SubHeader}>
-                                Collection Contests
+                                Gallery & Marketplace
                             </div>
-                            Contests will be held for artists to create mosaics
-                            for different Cubed Collections. Winners will
-                            receive Sol and widespread promos of their art!
+                            We've given you the basic tools to display and sell
+                            your creations, should you so desire.
                             <div className={LandingStyles.AboutListItem}>
-                                Phase 3
+                                What's coming in the future?
                             </div>
                             <div className={LandingStyles.SubHeader}>
-                                Cubed DAO
+                                *sigh* ok, yeah, there's a roadmap
                             </div>
-                            The Cubed DAO will to aim unite the Solana NFT
-                            ecosystem under a common Solana-native art medium.
-                            In order to join the Cubed DAO, members must create
-                            a Cubed Portrait of another NFT they own from a
-                            different project. The member will then act as a
-                            representative of the other project in the Cubed
-                            DAO.
+                            Moving forward, we're planning to create a more
+                            robust marketplace that includes the ability to make
+                            offers for mosaics you like, or auction mosaics you
+                            think might fetch a pretty penny.
+                            <br />
+                            <br />
+                            As {CubedText} grows, we'll also eventually add the
+                            ability to make public and private collections of
+                            mosaics. This will give you the ability to either
+                            create a portfolio, or give you and your buddies a
+                            way to reproduce SMB with Rubiks Cubes.
                             <div className={LandingStyles.SubHeader}>
-                                More Coming Soon...
+                                Anything else?
                             </div>
-                            We will constantly be looking for ways to support
-                            and enrich this community of artists and Solana
-                            holders!
+                            As humble servants of the cube, we'll be doing
+                            everything to further this project. We therefore
+                            plan to actively maintain, improve, and expand the{" "}
+                            {CubedText} platform. Don't you worry, baby.
                         </div>
                     </div>
                     <div className={clsx(LandingStyles.ContentContainer)}>
@@ -507,6 +487,7 @@ const Landing: NextPage = () => {
                                         "list-decimal ml-4 flex items-start justify-start flex-col text-left font-semibold"
                                     )}
                                 >
+                                    <li>Rubiks Cubes are sick</li>
                                     <li>
                                         They're the physical version of pixel
                                         art
@@ -526,43 +507,35 @@ const Landing: NextPage = () => {
                             </div>
                         </FaqItem>
                         <FaqItem question="How can I get involved?">
-                            There are lots of ways to get involved!
+                            Make a mosaic, duuuhhh.
                             <LineBreak />
-                            First make sure you join our Discord and follow us
-                            on Twitter. This is where our community lives :)
+                            If you want to make friends, that's why we have a
+                            discord, and if you want people to see your
+                            creations, hit us up on twitter.
                             <LineBreak />
-                            If you like making art, then mint a canvas and
-                            create a mosaic! (Be sure to share it in
-                            Discord/other socials so we all see it!) Not sure
-                            what to make? Try contributing to one of our
-                            Collections (on our Collections page)!
-                            <LineBreak />
-                            If you're a collector, you can buy and sell Mosaics
-                            like you would with any other NFT!
+                            If you're just looking to collect some sick art,
+                            well then, you're halfway to heaven. Just hit up the
+                            marketplace to see what's cookin'.
                         </FaqItem>
-                        <FaqItem question="What are Collections?">
-                            A Collection is a group of images that we want to
-                            turn into Cubed Mosaics :) When you contribute to a
-                            collection, your Mosaic will be featured on our
-                            Collections Page!
+                        <FaqItem question="Is this a rug pull?">
+                            If this is a rug pull, then I just spent five months
+                            creating the most elaborately stupid rug pull you
+                            could even imagine. I had to learn how to write
+                            Solana smart contracts, how to create 3d stuff in
+                            the browser, and I came up with the custom algorithm
+                            that solves the goddamn Rubiks Cube for you.
                             <LineBreak />
-                            One of our major goals is to complete each
-                            Collection we've listed, and we want your help!!
-                        </FaqItem>
-                        <FaqItem question="How do I get my Mosaic featured in the Marketplace?">
-                            Just DM on twitter us with your latest mosaic!
-                            <LineBreak />
-                            We feature Mosaics that either make important
-                            contributions to Collections or are just
-                            unreasonably cool
+                            Oh, and also I'm not anonymous. So I'm either the
+                            biggest idiot alive (which might be true, I
+                            suppose), or this isn't a rugpull.
                         </FaqItem>
                         <FaqItem question="Is Cubed the secret to happiness?">
-                            After carefully studying the holy books of the
-                            world, we've reached a conclusion: yes, yes it is :)
+                            The answer to that question is so obvious it might
+                            as well be written on the back of the Declaration of
+                            Independence in invisible ink.
                         </FaqItem>
                     </div>
                 </div>
-                {/* Here */}
                 <BottomBar />
             </div>
         </div>
