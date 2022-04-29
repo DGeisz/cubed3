@@ -97,11 +97,16 @@ const Sidebar: React.FC<Props> = (props) => {
     const [mosaicPrice, setMosaicPrice] = useState<number>();
     const [newMosaicPrice, setNewMosaicPrice] = useState<number>();
 
-    console.log("isOnMobile", isOnMobile());
+    // const [showSideBar, setShowSideBar] = useState<boolean>(!isOnMobile);
+    const [showSideBar, setShowSideBar] = useState<boolean>(true);
 
-    const [showSideBar, setShowSideBar] = useState<boolean>(!isOnMobile());
+    useEffect(() => {
+        setTimeout(() => {
+            setShowSideBar(!isOnMobile);
+        }, 100);
+    }, []);
 
-    console.log("showSideBar", showSideBar, isOnMobile());
+    console.log("showSideBar", showSideBar, isOnMobile);
 
     useEffect(() => {
         if (canvasScreen === CanvasScreen.MoreCubes) {
@@ -178,6 +183,8 @@ const Sidebar: React.FC<Props> = (props) => {
         );
     }
 
+    console.log("jettison!");
+
     return (
         <>
             <div
@@ -210,7 +217,7 @@ const Sidebar: React.FC<Props> = (props) => {
                 >
                     <div className={clsx("flex flex-row flex-grow")}>
                         <div className={clsx("flex flex-1 justify-start")}>
-                            {!isOnMobile() ? (
+                            {!isOnMobile ? (
                                 <Link href="/">
                                     <a>
                                         <AiFillHome

@@ -1,4 +1,4 @@
-export function isOnMobile() {
+export const isOnMobile = (() => {
     let check = false;
     try {
         if (window) {
@@ -18,4 +18,4 @@ export function isOnMobile() {
     } catch (_) {}
 
     return check;
-}
+})();
