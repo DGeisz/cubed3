@@ -153,7 +153,12 @@ const Sidebar: React.FC<Props> = (props) => {
                             />
                         </a>
                     </Link>
-                    <a href="https://twitter.com/cubed_art" target="_blank">
+                    <a
+                        href="https://twitter.com/cubed_art"
+                        target="_blank"
+                        rel="noreferrer noopener"
+                        title="Follow us on Twitter"
+                    >
                         <AiOutlineTwitter
                             className={clsx("text-cyan-500 cursor-pointer")}
                             size={24}

@@ -12,6 +12,7 @@ export function isOnMobile() {
                     )
                 )
                     check = true;
+                // @ts-ignore
             })(navigator?.userAgent || navigator?.vendor || window?.opera);
         }
     } catch (_) {}

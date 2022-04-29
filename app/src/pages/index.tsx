@@ -154,6 +154,8 @@ const Landing: NextPage = () => {
                                     <a
                                         href="https://twitter.com/cubed_art"
                                         target="_blank"
+                                        rel="noreferrer noopener"
+                                        title="Follow us on Twitter"
                                     >
                                         <AiFillTwitterCircle
                                             size={35}

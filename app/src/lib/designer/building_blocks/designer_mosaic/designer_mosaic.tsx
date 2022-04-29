@@ -177,6 +177,7 @@ export class DesignerMosaicTapestry {
             bottom: this.yDim * 3,
             height: this.yDim * 3,
             width: this.xDim * 3,
+            center: [0, 0],
         };
     }
 }
@@ -300,7 +301,7 @@ const DesignerMosaic: React.FC<Props> = (props) => {
     );
 
     useEffect(() => {
-        if (canvasRef.current && canvasRef.current.getContext) {
+        if (canvasRef.current) {
             const canvas = canvasRef.current;
             const context = canvas.getContext("2d");
             const rect = canvas.getBoundingClientRect();
