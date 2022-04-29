@@ -22,6 +22,7 @@ export enum MarketplaceInfo {
     None,
     Listing,
     Auction,
+    LastSale,
 }
 
 export interface ServerCanvas {

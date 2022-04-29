@@ -90,15 +90,6 @@ const Landing: NextPage = () => {
     }, [provider, program]);
 
     async function init() {
-        toast.promise(
-            new Promise((resolve, reject) => setTimeout(reject, 3000)),
-            {
-                pending: "Loading...",
-                success: "Yeet!",
-                error: "Yikes!",
-            }
-        );
-
         if (DEV) {
             await initializeCubed(provider, program);
             const canvases = await program.account.cubedCanvas.all();

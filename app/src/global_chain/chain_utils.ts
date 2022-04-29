@@ -1,7 +1,7 @@
 import { LAMPORTS_PER_SOL } from "@solana/web3.js";
 import { MIN_CANVAS_PRICE } from "./chain_constants";
 
-const SEC_IN_HOUR = 60 * 60;
+const SEC_IN_24_HOUR = 60 * 60 * 24;
 
 export function priceEmaToCurrentPriceLamports(
     lamportsEma: number,
@@ -11,10 +11,10 @@ export function priceEmaToCurrentPriceLamports(
 
     let current;
 
-    if (secondsSinceLast < SEC_IN_HOUR) {
+    if (secondsSinceLast < SEC_IN_24_HOUR) {
         current = lamportsEma;
     } else {
-        current = (lamportsEma * SEC_IN_HOUR) / secondsSinceLast;
+        current = (lamportsEma * SEC_IN_24_HOUR) / secondsSinceLast;
     }
 
     current = Math.max(minPriceLamps, current);

@@ -26,12 +26,20 @@ const GalleryItem: React.FC<Props> = (props) => {
     const { artist, time, marketplaceInfo, marketplacePrice } =
         props.serverCanvas;
 
+    const [showFullArtist, setShowFullArtist] = React.useState<boolean>(false);
+
     let sol;
     let message;
 
     switch (marketplaceInfo) {
         case MarketplaceInfo.Listing: {
             message = "Price";
+            sol = marketplacePrice || 0;
+
+            break;
+        }
+        case MarketplaceInfo.LastSale: {
+            message = "Last Sale";
             sol = marketplacePrice || 0;
 
             break;
@@ -82,12 +90,19 @@ const GalleryItem: React.FC<Props> = (props) => {
                         </div>
                         <div
                             className={clsx(
-                                "truncate",
                                 "mb-4",
+                                !showFullArtist && "cursor-pointer",
                                 GalleryItemStyles.ContentText
                             )}
+                            onClick={() =>
+                                !showFullArtist &&
+                                setShowFullArtist(!showFullArtist)
+                            }
                         >
-                            {props.serverCanvas.artist.length > MAX_ARTIST_LEN
+                            {showFullArtist
+                                ? artist
+                                : props.serverCanvas.artist.length >
+                                  MAX_ARTIST_LEN
                                 ? artist.substring(0, MAX_ARTIST_LEN) + "..."
                                 : artist}
                         </div>

@@ -301,6 +301,81 @@ describe("cubed", () => {
     assert(canvas.cubesInCanvas == _cubes_in_canvas);
   });
 
+  // it("Allows us to withdraw earnings", async () => {
+  //   const ownerLamportsBefore = (
+  //     await provider.connection.getAccountInfo(provider.wallet.publicKey)
+  //   ).lamports;
+
+  //   await program.rpc.withdrawEarnings(_master_bump, {
+  //     accounts: {
+  //       cubedMaster: _master_pda,
+  //       owner: provider.wallet.publicKey,
+  //       systemProgram: SystemProgram.programId,
+  //       rent: SYSVAR_RENT_PUBKEY,
+  //     },
+  //   });
+
+  //   const ownerLamportsAfter = (
+  //     await provider.connection.getAccountInfo(provider.wallet.publicKey)
+  //   ).lamports;
+
+  //   const delLamports = ownerLamportsAfter - ownerLamportsBefore;
+  //   const priceWithoutTransactions =
+  //     (CUBES_TO_PLACE * CUBE_PRICE + MIN_CANVAS_PRICE) * LAMPORTS_PER_SOL;
+
+  //   assert(delLamports >= priceWithoutTransactions - 10000);
+  //   assert(delLamports < priceWithoutTransactions);
+  // });
+
+  it("Allows us to change ownership", async () => {
+    {
+      const master = await program.account.cubedMaster.fetch(_master_pda);
+      assert(master.owner.toString() === provider.wallet.publicKey.toString());
+    }
+
+    await program.rpc.changeOwnership(_master_bump, {
+      accounts: {
+        cubedMaster: _master_pda,
+        owner: provider.wallet.publicKey,
+        newOwner: artist.publicKey,
+        systemProgram: SystemProgram.programId,
+      },
+    });
+
+    {
+      const master = await program.account.cubedMaster.fetch(_master_pda);
+      assert(master.owner.toString() === artist.publicKey.toString());
+    }
+  });
+
+  // Disable when other withdraw earning test is enabled
+  it("Allows us to withdraw earnings to artist", async () => {
+    const ownerLamportsBefore = (
+      await provider.connection.getAccountInfo(artist.publicKey)
+    ).lamports;
+
+    await program.rpc.withdrawEarnings(_master_bump, {
+      accounts: {
+        cubedMaster: _master_pda,
+        owner: artist.publicKey,
+        systemProgram: SystemProgram.programId,
+        rent: SYSVAR_RENT_PUBKEY,
+      },
+      signers: [artist],
+    });
+
+    const ownerLamportsAfter = (
+      await provider.connection.getAccountInfo(artist.publicKey)
+    ).lamports;
+
+    const delLamports = Math.round(ownerLamportsAfter - ownerLamportsBefore);
+    const priceWithoutTransactions = Math.round(
+      (CUBES_TO_PLACE * CUBE_PRICE + MIN_CANVAS_PRICE) * LAMPORTS_PER_SOL
+    );
+
+    assert(delLamports == priceWithoutTransactions);
+  });
+
   it("Allows us to place cube", async () => {
     const algo: CubeSyntaxTurn[] = extendAlgo(
       CubeModel.algoStringToTurns("R D R' D'2")
@@ -507,7 +582,7 @@ describe("cubed", () => {
       escrow_bump,
       listing_bump,
       _canvas_time,
-      new anchor.BN(20),
+      new anchor.BN(1000),
       {
         accounts: {
           owner: artist.publicKey,
@@ -520,7 +595,7 @@ describe("cubed", () => {
     );
 
     let mosaicListing = await program.account.mosaicListing.fetch(listing_pda);
-    assert(mosaicListing.price.toNumber() === 20);
+    assert(mosaicListing.price.toNumber() === 1000);
   });
 
   it("Allows us to buy the mosaic", async () => {
@@ -536,8 +611,17 @@ describe("cubed", () => {
         program.programId
       );
 
+    const artLampBefore = (
+      await provider.connection.getAccountInfo(artist.publicKey)
+    ).lamports;
+
+    const masterLampBefore = (
+      await provider.connection.getAccountInfo(_master_pda)
+    ).lamports;
+
     await program.rpc.buyMosaic(
       _master_bump,
+      _canvas_bump,
       _mint_bump,
       buyer_account_bump,
       escrow_bump,
@@ -548,6 +632,8 @@ describe("cubed", () => {
           cubedMaster: _master_pda,
           buyer: buyer.publicKey,
           owner: artist.publicKey,
+          artist: artist.publicKey,
+          canvas: _canvas_pda,
           mint: _mint_pda,
           listing: listing_pda,
           buyerAccount: buyer_account_pda,
@@ -560,11 +646,21 @@ describe("cubed", () => {
       }
     );
 
+    const artLampAfter = (
+      await provider.connection.getAccountInfo(artist.publicKey)
+    ).lamports;
+
+    const masterLampAfter = (
+      await provider.connection.getAccountInfo(_master_pda)
+    ).lamports;
+
     const escrowInfo = await tokenMaster.getAccountInfo(escrow_pda);
     const buyerAccountInfo = await tokenMaster.getAccountInfo(
       buyer_account_pda
     );
 
+    assert(artLampAfter - artLampBefore === 1000 - 30);
+    assert(masterLampAfter - masterLampBefore === 30);
     assert(escrowInfo.amount.toNumber() == 0);
     assert(buyerAccountInfo.amount.toNumber() == 1);
   });
@@ -720,8 +816,17 @@ describe("cubed", () => {
     let offerAccount = await provider.connection.getAccountInfo(offer_pda);
     let startingLamports = offerAccount.lamports;
 
+    const artLampBefore = (
+      await provider.connection.getAccountInfo(artist.publicKey)
+    ).lamports;
+
+    const masterLampBefore = (
+      await provider.connection.getAccountInfo(_master_pda)
+    ).lamports;
+
     await program.rpc.acceptOffer(
       _master_bump,
+      _canvas_bump,
       _mint_bump,
       buyer_account_bump,
       _token_bump,
@@ -731,6 +836,9 @@ describe("cubed", () => {
         accounts: {
           owner: buyer.publicKey,
           bidder: artist.publicKey,
+          artist: artist.publicKey,
+          canvas: _canvas_pda,
+          cubedMaster: _master_pda,
           offer: offer_pda,
           mint: _mint_pda,
           ownerAccount: buyer_account_pda,
@@ -743,11 +851,22 @@ describe("cubed", () => {
       }
     );
 
+    const artLampAfter = (
+      await provider.connection.getAccountInfo(artist.publicKey)
+    ).lamports;
+
+    const masterLampAfter = (
+      await provider.connection.getAccountInfo(_master_pda)
+    ).lamports;
+
     const offer = await program.account.mosaicOffer.fetch(offer_pda);
     offerAccount = await provider.connection.getAccountInfo(offer_pda);
 
     assert(offer.bidder.toString() == artist.publicKey.toString());
     assert(offer.price.toNumber() == 0);
+
+    assert(artLampAfter - artLampBefore == 15);
+    assert(masterLampAfter - masterLampBefore == 15);
 
     assert(offerAccount.lamports - startingLamports == -500);
 
@@ -927,8 +1046,13 @@ describe("cubed", () => {
       await provider.connection.getAccountInfo(artist.publicKey)
     ).lamports;
 
+    const masterLampBefore = (
+      await provider.connection.getAccountInfo(_master_pda)
+    ).lamports;
+
     await program.rpc.finishAuction(
       _master_bump,
+      _canvas_bump,
       auction_bump,
       aes_bump,
       buyer_account_bump,
@@ -938,6 +1062,8 @@ describe("cubed", () => {
           cubedMaster: _master_pda,
           winner: buyer.publicKey,
           owner: artist.publicKey,
+          canvas: _canvas_pda,
+          artist: artist.publicKey,
           auction: auction_pda,
           aesAccount: aes_pda,
           winnerAccount: buyer_account_pda,
@@ -951,7 +1077,12 @@ describe("cubed", () => {
       await provider.connection.getAccountInfo(artist.publicKey)
     ).lamports;
 
-    assert(artLampAfter - artLampBefore === 3000);
+    const masterLampAfter = (
+      await provider.connection.getAccountInfo(_master_pda)
+    ).lamports;
+
+    assert(artLampAfter - artLampBefore === 2910);
+    assert(masterLampAfter - masterLampBefore === 90);
     const artistAccountInfo = await tokenMaster.getAccountInfo(_token_pda);
     const aesAccountInfo = await tokenMaster.getAccountInfo(aes_pda);
     const buyerAccountInfo = await tokenMaster.getAccountInfo(

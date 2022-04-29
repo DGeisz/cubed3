@@ -438,13 +438,14 @@ export async function buyMosaic(
                 program.programId
             );
 
-            const { canvas_time } = await getCanvasInfo(
-                canvasTime,
-                program.programId
-            );
+            const { canvas_time, canvas_bump, canvas_pda } =
+                await getCanvasInfo(canvasTime, program.programId);
+
+            const canvas = await program.account.cubedCanvas.fetch(canvas_pda);
 
             await program.rpc.buyMosaic(
                 master_bump,
+                canvas_bump,
                 mint_bump,
                 token_bump,
                 escrow_bump,
@@ -455,6 +456,8 @@ export async function buyMosaic(
                         cubedMaster: master_pda,
                         buyer: provider.wallet.publicKey,
                         owner,
+                        canvas: canvas_pda,
+                        artist: canvas.artist,
                         mint: mint_pda,
                         listing: listing_pda,
                         buyerAccount: token_pda,

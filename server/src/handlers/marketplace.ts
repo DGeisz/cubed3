@@ -67,6 +67,7 @@ export async function buyMosaic(
   }
 
   mongoCanvas.owner = buyer;
+  mongoCanvas.marketplaceInfo = MarketplaceInfo.LastSale;
 
   await mongoCanvas.save();
 

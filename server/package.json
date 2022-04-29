@@ -20,6 +20,7 @@
   },
   "scripts": {
     "build": "tsc",
+    "prod": "tsc && node dist/js/index.js",
     "start": "concurrently \"tsc -w\" \"nodemon --delay 500ms dist/js/index.js\"",
     "idl": "cp ../target/idl/cubed.json src/services/solana/idl.json",
     "types": "cp ../target/types/cubed.ts src/services/solana/cubed.ts ",

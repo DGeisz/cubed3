@@ -529,8 +529,18 @@ export type Cubed = {
           "isSigner": false
         },
         {
+          "name": "artist",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
           "name": "mint",
           "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "canvas",
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -567,6 +577,10 @@ export type Cubed = {
       "args": [
         {
           "name": "masterBump",
+          "type": "u8"
+        },
+        {
+          "name": "canvasBump",
           "type": "u8"
         },
         {
@@ -735,6 +749,11 @@ export type Cubed = {
       "name": "acceptOffer",
       "accounts": [
         {
+          "name": "cubedMaster",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
           "name": "owner",
           "isMut": true,
           "isSigner": true
@@ -756,6 +775,16 @@ export type Cubed = {
         },
         {
           "name": "ownerAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "canvas",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "artist",
           "isMut": true,
           "isSigner": false
         },
@@ -783,6 +812,10 @@ export type Cubed = {
       "args": [
         {
           "name": "masterBump",
+          "type": "u8"
+        },
+        {
+          "name": "canvasBump",
           "type": "u8"
         },
         {
@@ -988,6 +1021,16 @@ export type Cubed = {
           "isSigner": false
         },
         {
+          "name": "canvas",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "artist",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
           "name": "auction",
           "isMut": true,
           "isSigner": false
@@ -1016,6 +1059,10 @@ export type Cubed = {
       "args": [
         {
           "name": "masterBump",
+          "type": "u8"
+        },
+        {
+          "name": "canvasBump",
           "type": "u8"
         },
         {
@@ -1740,8 +1787,18 @@ export const IDL: Cubed = {
           "isSigner": false
         },
         {
+          "name": "artist",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
           "name": "mint",
           "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "canvas",
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -1778,6 +1835,10 @@ export const IDL: Cubed = {
       "args": [
         {
           "name": "masterBump",
+          "type": "u8"
+        },
+        {
+          "name": "canvasBump",
           "type": "u8"
         },
         {
@@ -1946,6 +2007,11 @@ export const IDL: Cubed = {
       "name": "acceptOffer",
       "accounts": [
         {
+          "name": "cubedMaster",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
           "name": "owner",
           "isMut": true,
           "isSigner": true
@@ -1967,6 +2033,16 @@ export const IDL: Cubed = {
         },
         {
           "name": "ownerAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "canvas",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "artist",
           "isMut": true,
           "isSigner": false
         },
@@ -1994,6 +2070,10 @@ export const IDL: Cubed = {
       "args": [
         {
           "name": "masterBump",
+          "type": "u8"
+        },
+        {
+          "name": "canvasBump",
           "type": "u8"
         },
         {
@@ -2199,6 +2279,16 @@ export const IDL: Cubed = {
           "isSigner": false
         },
         {
+          "name": "canvas",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "artist",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
           "name": "auction",
           "isMut": true,
           "isSigner": false
@@ -2227,6 +2317,10 @@ export const IDL: Cubed = {
       "args": [
         {
           "name": "masterBump",
+          "type": "u8"
+        },
+        {
+          "name": "canvasBump",
           "type": "u8"
         },
         {

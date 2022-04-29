@@ -26,6 +26,7 @@ const COLLECTION_SEED_PREFIX: &[u8] = b"clln";
 const CUBE_PRICE: f64 = 0.01;
 const COLLECTION_PRICE: f64 = 0.1;
 const INIT_CUBES: u16 = 16;
+const ROYALTY_PERCENT: u64 = 3;
 
 const MINT_SEED_PREFIX: &[u8] = b"mint";
 const TOKEN_ACCOUNT_SEED_PREFIX: &[u8] = b"token";
@@ -59,8 +60,6 @@ pub fn get_mint_authority(account_info: &AccountInfo) -> Result<COption<Pubkey>,
 
 #[program]
 pub mod cubed {
-    use std::str::FromStr;
-
     use mpl_token_metadata::state::Creator;
 
     use super::*;
@@ -85,6 +84,32 @@ pub mod cubed {
         default_collection.name_bytes = default_collection_name;
         default_collection.max_size = -1;
         default_collection.num_items = 0;
+
+        Ok(())
+    }
+
+    pub fn withdraw_earnings(ctx: Context<WithdrawEarnings>, _master_bump: u8) -> ProgramResult {
+        let cube_master = &mut ctx.accounts.cubed_master;
+        let owner = &mut ctx.accounts.owner;
+        let rent = &mut ctx.accounts.rent;
+
+        /* This needs to be the same as in `Initialize` */
+        let master_size = 8 + 32 + 16 + 8;
+
+        let master_rent = rent.minimum_balance(master_size);
+        let transfer_amount = cube_master.to_account_info().try_lamports()? - master_rent;
+
+        **cube_master.to_account_info().try_borrow_mut_lamports()? -= transfer_amount;
+        **owner.to_account_info().try_borrow_mut_lamports()? += transfer_amount;
+
+        Ok(())
+    }
+
+    pub fn change_ownership(ctx: Context<ChangeOwnership>, _master_bump: u8) -> ProgramResult {
+        let cube_master = &mut ctx.accounts.cubed_master;
+        let new_owner = &mut ctx.accounts.new_owner;
+
+        cube_master.owner = new_owner.key();
 
         Ok(())
     }
@@ -545,6 +570,7 @@ pub mod cubed {
     pub fn buy_mosaic(
         ctx: Context<BuyMosaic>,
         _master_bump: u8,
+        _canvas_bump: u8,
         _mint_bump: u8,
         _buyer_account_bump: u8,
         _escrow_bump: u8,
@@ -557,8 +583,15 @@ pub mod cubed {
         let buyer_account = &mut ctx.accounts.buyer_account;
         let cubed_master = &mut ctx.accounts.cubed_master;
         let owner = &mut ctx.accounts.owner;
+        let canvas = &mut ctx.accounts.canvas;
+        let artist = &mut ctx.accounts.artist;
 
         let escrow_data = _account_info_to_token_account(escrow_account)?;
+
+        if canvas.artist != artist.key() {
+            msg!("Canvas must be owned by artist");
+            return Err(ProgramError::InvalidAccountData);
+        }
 
         if escrow_data.amount != 1 {
             msg!("Owner's escrow account must possess nft to change listing");
@@ -575,9 +608,32 @@ pub mod cubed {
             return Err(ProgramError::InsufficientFunds);
         }
 
-        /* First transfer the funds */
+        /* Calculate the royalties */
+        let royalty_and_fee = (ROYALTY_PERCENT * listing.price) / 100;
+        let final_funds_transferred = listing.price - (2 * royalty_and_fee);
+
+        /* Transfer the royalties and the fees */
         invoke(
-            &system_instruction::transfer(&buyer.key(), &listing.owner, listing.price),
+            &system_instruction::transfer(&buyer.key(), &artist.key(), royalty_and_fee),
+            &[
+                buyer.to_account_info().clone(),
+                artist.clone(),
+                ctx.accounts.system_program.to_account_info(),
+            ],
+        )?;
+
+        invoke(
+            &system_instruction::transfer(&buyer.key(), &cubed_master.key(), royalty_and_fee),
+            &[
+                buyer.to_account_info().clone(),
+                cubed_master.to_account_info().clone(),
+                ctx.accounts.system_program.to_account_info(),
+            ],
+        )?;
+
+        /* Transfer the funds */
+        invoke(
+            &system_instruction::transfer(&buyer.key(), &listing.owner, final_funds_transferred),
             &[
                 buyer.to_account_info().clone(),
                 owner.clone(),
@@ -770,6 +826,7 @@ pub mod cubed {
     pub fn accept_offer(
         ctx: Context<AcceptOffer>,
         _master_bump: u8,
+        _canvas_bump: u8,
         _mint_bump: u8,
         _owner_account_bump: u8,
         _bidder_account_bump: u8,
@@ -782,10 +839,18 @@ pub mod cubed {
         let offer = &mut ctx.accounts.offer;
         let bidder_account = &mut ctx.accounts.bidder_account;
         let bidder = &mut ctx.accounts.bidder;
+        let canvas = &mut ctx.accounts.canvas;
+        let artist = &mut ctx.accounts.artist;
+        let cubed_master = &mut ctx.accounts.cubed_master;
 
         let old_price = offer.price.clone();
 
         let token_data = _account_info_to_token_account(owner_account)?;
+
+        if canvas.artist != artist.key() {
+            msg!("Artist didn't create this canvas!");
+            return Err(ProgramError::InvalidAccountData);
+        }
 
         if offer.price == 0 {
             msg!("Offer price zero indicates the offer isn't active");
@@ -825,8 +890,14 @@ pub mod cubed {
 
         token::transfer(context, 1)?;
 
+        let royalty_and_fee = (ROYALTY_PERCENT * old_price) / 100;
+        let final_funds_transferred = old_price - (2 * royalty_and_fee);
+
         **offer.to_account_info().try_borrow_mut_lamports()? -= old_price;
-        **owner.to_account_info().try_borrow_mut_lamports()? += old_price;
+
+        **artist.to_account_info().try_borrow_mut_lamports()? += royalty_and_fee;
+        **cubed_master.to_account_info().try_borrow_mut_lamports()? += royalty_and_fee;
+        **owner.to_account_info().try_borrow_mut_lamports()? += final_funds_transferred;
 
         /* Change this offer price to zero so that new owners can't accept a false offer */
         offer.price = 0;
@@ -979,6 +1050,7 @@ pub mod cubed {
     pub fn finish_auction(
         ctx: Context<FinishAuction>,
         master_bump: u8,
+        _canvas_bump: u8,
         _auction_bump: u8,
         aes_bump: u8,
         winner_account_bump: u8,
@@ -990,8 +1062,15 @@ pub mod cubed {
         let owner = &mut ctx.accounts.owner;
         let auction = &mut ctx.accounts.auction;
         let cubed_master = &mut ctx.accounts.cubed_master;
+        let canvas = &mut ctx.accounts.canvas;
+        let artist = &mut ctx.accounts.artist;
 
         let current_time = get_epoch_time_secs();
+
+        if canvas.artist != artist.key() {
+            msg!("Artist didn't create mosaic!");
+            return Err(ProgramError::InvalidArgument);
+        }
 
         /* Make sure auction has finished */
         if current_time < auction.end_time {
@@ -1038,9 +1117,15 @@ pub mod cubed {
 
         let highest_bid = auction.highest_bid.clone();
 
+        let royalty_and_fee = (ROYALTY_PERCENT * highest_bid) / 100;
+        let final_funds_transferred = highest_bid - (2 * royalty_and_fee);
+
         /* Now transfer funds from the auction account to the owner */
         **auction.to_account_info().try_borrow_mut_lamports()? -= highest_bid;
-        **owner.to_account_info().try_borrow_mut_lamports()? += highest_bid;
+
+        **artist.to_account_info().try_borrow_mut_lamports()? += royalty_and_fee;
+        **cubed_master.to_account_info().try_borrow_mut_lamports()? += royalty_and_fee;
+        **owner.to_account_info().try_borrow_mut_lamports()? += final_funds_transferred;
 
         /* Zero out the auction account */
         auction.highest_bid = 0;
@@ -1050,7 +1135,7 @@ pub mod cubed {
 }
 
 #[derive(Accounts)]
-#[instruction(master_bump: u8, auction_bump: u8,  aes_bump: u8, winner_account_bump: u8, epoch_time: i64)]
+#[instruction(master_bump: u8, canvas_bump: u8, auction_bump: u8,  aes_bump: u8, winner_account_bump: u8, epoch_time: i64)]
 pub struct FinishAuction<'info> {
     #[account(mut)]
     winner: AccountInfo<'info>,
@@ -1061,6 +1146,13 @@ pub struct FinishAuction<'info> {
         seeds = [MASTER_SEED],
         bump = master_bump)]
     pub cubed_master: Account<'info, CubedMaster>,
+    #[account(
+        mut,
+        seeds = [CANVAS_SEED_PREFIX, &epoch_time.to_le_bytes()],
+        bump = canvas_bump)]
+    pub canvas: Account<'info, CubedCanvas>,
+    #[account(mut)]
+    pub artist: AccountInfo<'info>,
     #[account(
         mut,
         constraint = auction.leader == winner.key(),
@@ -1167,8 +1259,13 @@ pub struct RemoveOffer<'info> {
 
 /* We're going to say that you just have to have this unlisted to accept an offer */
 #[derive(Accounts)]
-#[instruction(_master_bump: u8, _mint_bump: u8, _owner_account_bump: u8, bidder_account_bump: u8, offer_bump: u8, epoch_time: i64)]
+#[instruction(_master_bump: u8, _canvas_bump: u8, _mint_bump: u8, _owner_account_bump: u8, bidder_account_bump: u8, offer_bump: u8, epoch_time: i64)]
 pub struct AcceptOffer<'info> {
+    #[account(
+        mut,
+        seeds = [MASTER_SEED],
+        bump = _master_bump)]
+    pub cubed_master: Account<'info, CubedMaster>,
     #[account(mut)]
     pub owner: Signer<'info>,
     #[account(mut)]
@@ -1192,6 +1289,13 @@ pub struct AcceptOffer<'info> {
         bump = _owner_account_bump
     )]
     pub owner_account: AccountInfo<'info>,
+    #[account(
+        mut,
+        seeds = [CANVAS_SEED_PREFIX, &epoch_time.to_le_bytes()],
+        bump = _canvas_bump)]
+    pub canvas: Account<'info, CubedCanvas>,
+    #[account(mut)]
+    pub artist: AccountInfo<'info>,
     #[account(
         init_if_needed,
         payer = owner,
@@ -1274,7 +1378,7 @@ pub struct RemoveListing<'info> {
 }
 
 #[derive(Accounts)]
-#[instruction(_master_bump: u8, _mint_bump: u8, _buyer_account_bump: u8, escrow_bump: u8, _listing_bump: u8, epoch_time: i64)]
+#[instruction(_master_bump: u8, _canvas_bump: u8, _mint_bump: u8, _buyer_account_bump: u8, escrow_bump: u8, _listing_bump: u8, epoch_time: i64)]
 pub struct BuyMosaic<'info> {
     #[account(
         mut,
@@ -1285,11 +1389,18 @@ pub struct BuyMosaic<'info> {
     pub buyer: Signer<'info>,
     #[account(mut)]
     pub owner: AccountInfo<'info>,
+    #[account(mut)]
+    pub artist: AccountInfo<'info>,
     #[account(
         seeds = [MINT_SEED_PREFIX, &epoch_time.to_le_bytes()],
         bump = _mint_bump,
         )]
     pub mint: AccountInfo<'info>,
+    #[account(
+        mut,
+        seeds = [CANVAS_SEED_PREFIX, &epoch_time.to_le_bytes()],
+        bump = _canvas_bump)]
+    pub canvas: Account<'info, CubedCanvas>,
     #[account(
         has_one = owner,
         seeds = [LISTING_SEED_PREFIX, &epoch_time.to_le_bytes()],
@@ -1432,6 +1543,29 @@ pub struct Initialize<'info> {
     pub default_collection: Account<'info, CubedCollection>,
     #[account(mut)]
     pub owner: Signer<'info>,
+    pub system_program: Program<'info, System>,
+}
+
+#[derive(Accounts)]
+#[instruction(master_bump: u8)]
+pub struct WithdrawEarnings<'info> {
+    #[account(mut)]
+    pub owner: Signer<'info>,
+    #[account(mut, has_one = owner)]
+    pub cubed_master: Account<'info, CubedMaster>,
+    pub system_program: Program<'info, System>,
+    pub rent: Sysvar<'info, Rent>,
+}
+
+#[derive(Accounts)]
+#[instruction(master_bump: u8)]
+pub struct ChangeOwnership<'info> {
+    #[account(mut)]
+    pub owner: Signer<'info>,
+    #[account(mut)]
+    pub new_owner: AccountInfo<'info>,
+    #[account(mut, has_one = owner)]
+    pub cubed_master: Account<'info, CubedMaster>,
     pub system_program: Program<'info, System>,
 }
 
