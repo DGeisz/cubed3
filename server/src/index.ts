@@ -19,7 +19,7 @@ app.use(routes);
   try {
     console.log("Starting mongo...");
     await initMongo();
-    console.log("Got mongo...");
+    console.log("Got mongo....");
 
     app.listen(PORT, () => {
       console.log(`Server running on http://localhost:${PORT}`);

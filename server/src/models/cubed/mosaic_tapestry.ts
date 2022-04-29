@@ -228,5 +228,4 @@ export function drawMosaicImage(cubedCanvas: ServerCanvas) {
   const image = drawMosaicImageToBuffer(cubedCanvas);
 
   fs.writeFileSync("test.png", image);
-  console.log("Wrote file!");
 }

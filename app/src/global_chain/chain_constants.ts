@@ -20,5 +20,7 @@ export const AUCTION_ESCROW_ACCOUNT_SEED_PREFIX = "aes";
 
 // Change this when we deploy to dev net
 export const TOKEN_METADATA_PROGRAM_ID =
-    "HgwNM7dNbivnhuS62jyk3gMuepZgbFTT6thnjqvyGAso";
+    process.env.CLUSTER === "local"
+        ? "HgwNM7dNbivnhuS62jyk3gMuepZgbFTT6thnjqvyGAso"
+        : "metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s";
 export const METADATA_NAME = "metadata";

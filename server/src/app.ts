@@ -101,24 +101,10 @@ app.post("/get_canvas", async (req: Request, res: Response) => {
 app.post("/buy_canvas", (req: Request, res: Response) => {
   req.body;
 
-  console.log("this is body", req.body);
-
   res.json(req.body);
 });
 
-// app.get("/", (req: Request, res: Response) => {
-//   res.json({ hey: 2 });
-// });
-
 const PORT: string | number = process.env.PORT || 4000;
-
-// app.listen(PORT, () => {
-//   console.log(`Server running on http://localhost:${PORT}`);
-// });
-
-// app.use(cors());
-// app.use(express.json());
-// app.use(menuRoutes);
 
 const uri = `mongodb+srv://cubed:${process.env.MONGO_PASSWORD}@cluster0.r5rab.mongodb.net/myFirstDatabase?retryWrites=true&w=majority`;
 

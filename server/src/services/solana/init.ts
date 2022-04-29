@@ -1,5 +1,6 @@
 import { Program, Provider } from "@project-serum/anchor";
 import {
+  Cluster,
   clusterApiUrl,
   ConfirmOptions,
   Connection,
@@ -12,7 +13,14 @@ import idl from "./idl.json";
 const programID = new PublicKey("5pDJMtbFrSnctiWQi57WtFgbpsuPbQKFkBMUyDMaVpef");
 
 /* Use clusterApiUrl to get the different network URLs once you actually deploy */
-const network = "http://127.0.0.1:8899";
+let network: string;
+
+if (process.env.CLUSTER === "local") {
+  network = "http://127.0.0.1:8899";
+} else {
+  network = clusterApiUrl(process.env.CLUSTER as Cluster);
+}
+
 const connection = new Connection(network, "processed");
 
 const opts: ConfirmOptions = {

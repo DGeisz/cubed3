@@ -16,8 +16,7 @@ import {
 } from "../../global_chain/chain_constants";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { CubePlacement } from "../../global_architecture/cube_model/cube_model";
-
-const BASE_URL = "http://localhost:4000";
+import { BASE_URL } from "../../global_networking/constants";
 
 const TestPage: NextPage = () => {
     const { program, provider } = useProvider();

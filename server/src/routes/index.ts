@@ -43,5 +43,6 @@ routes.post("/buy_mosaic", buyMosaic);
 
 /* DEV ROUTES (BE CAREFUL!) */
 if (process.env.DEV === "true") {
+  console.log("DEV ROUTES", process.env.DEV);
   routes.post("/delete_everything", deleteEverything);
 }

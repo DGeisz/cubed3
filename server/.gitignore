@@ -1,3 +1,12 @@
 nodemon.json
 test-ledger/
 dist/
+.anchor
+.DS_Store
+target
+**/*.rs.bk
+node_modules
+.idea/
+/app/test-ledger/*
+test-ledger/*
+.env
