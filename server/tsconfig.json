@@ -7,8 +7,15 @@
     "strict": true,
     "esModuleInterop": true,
     "resolveJsonModule": true,
-    "forceConsistentCasingInFileNames": true
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true
   },
   "include": ["src/**/*"],
-  "exclude": ["src/types/*.ts", "node_modules", ".vscode", ".idea"]
+  "exclude": [
+    "src/types/*.ts",
+    "node_modules",
+    ".vscode",
+    ".idea",
+    "../node_modules"
+  ]
 }

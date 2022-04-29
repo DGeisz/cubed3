@@ -25,11 +25,6 @@ const s3 = new S3({
   secretAccessKey: process.env.AWS_SECRET_KEY,
 });
 
-console.log({
-  accessKeyId: process.env.AWS_ACCESS_KEY,
-  secretAccessKey: process.env.AWS_SECRET_KEY,
-});
-
 export async function testSaveImage(
   req: Request<any, any, { time: number }>,
   res: Response

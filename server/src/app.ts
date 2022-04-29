@@ -1,15 +1,7 @@
 import express, { Request, Response } from "express";
-import mongoose, { Schema, model } from "mongoose";
+import { Schema, model } from "mongoose";
 import cors from "cors";
-import idl from "./services/solana/idl.json";
-import { Cubed } from "./services/solana/types/cubed";
-import {
-  clusterApiUrl,
-  ConfirmOptions,
-  Connection,
-  Keypair,
-  PublicKey,
-} from "@solana/web3.js";
+import { PublicKey } from "@solana/web3.js";
 import { Program, Provider } from "@project-serum/anchor";
 import { Wallet } from "@project-serum/anchor/dist/cjs/provider";
 import "dotenv/config";

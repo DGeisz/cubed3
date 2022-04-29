@@ -1,4 +1,3 @@
-import { AccountInfo } from "@solana/spl-token";
 import { PublicKey } from "@solana/web3.js";
 import { Response, Request } from "express";
 import _ from "underscore";
