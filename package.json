@@ -11,7 +11,8 @@
   },
   "scripts": {
     "solBuild": "cd app && yarn run solBuild && cd ../server && yarn run solBuild && cd ..",
-    "server": "cd server && yarn run prod"
+    "server": "cd server && yarn run prod",
+    "heroku-prebuild": "cd server && yarn install"
   },
   "devDependencies": {
     "@types/axios": "^0.14.0",
