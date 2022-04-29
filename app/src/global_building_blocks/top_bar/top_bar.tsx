@@ -126,7 +126,7 @@ const TopBar: React.FC = () => {
                                     Home
                                 </a>
                             </Link>
-                            <Link href="/demo">
+                            <Link href="/mario">
                                 <a className={LandingStyles.HeaderOption}>
                                     Demo
                                 </a>
@@ -162,7 +162,7 @@ const TopBar: React.FC = () => {
                                 Home
                             </a>
                         </Link>
-                        <Link href="/demo">
+                        <Link href="/mario">
                             <a className={LandingStyles.HeaderOptionMobile}>
                                 Demo
                             </a>
