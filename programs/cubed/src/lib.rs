@@ -107,7 +107,7 @@ pub mod cubed {
         let now = get_epoch_time_secs();
 
         /* Make sure the epoch time they provided for the new account isn't greater than the time now */
-        if now < epoch_time {
+        if now + 3 < epoch_time {
             return Err(ProgramError::InvalidArgument);
         }
 

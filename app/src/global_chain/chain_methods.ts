@@ -136,31 +136,27 @@ export async function buyCanvas(
         bytes: DEFAULT_COLLECTION_NAME_BYTES,
     };
 
-    try {
-        await program.rpc.buyCanvas(
-            // @ts-ignore
-            master_bump,
-            canvas_bump,
-            mint_bump,
-            canvas_time,
-            collection.bytes,
-            collection.bump,
-            {
-                accounts: {
-                    artist: provider.wallet.publicKey,
-                    cubedMaster: master_pda,
-                    canvas: canvas_pda,
-                    mint: mint_pda,
-                    systemProgram: SystemProgram.programId,
-                    collection: collection.key,
-                    tokenProgram: TOKEN_PROGRAM_ID,
-                    rent: SYSVAR_RENT_PUBKEY,
-                },
-            }
-        );
-    } catch (e) {
-        console.error(e);
-    }
+    await program.rpc.buyCanvas(
+        // @ts-ignore
+        master_bump,
+        canvas_bump,
+        mint_bump,
+        canvas_time,
+        collection.bytes,
+        collection.bump,
+        {
+            accounts: {
+                artist: provider.wallet.publicKey,
+                cubedMaster: master_pda,
+                canvas: canvas_pda,
+                mint: mint_pda,
+                systemProgram: SystemProgram.programId,
+                collection: collection.key,
+                tokenProgram: TOKEN_PROGRAM_ID,
+                rent: SYSVAR_RENT_PUBKEY,
+            },
+        }
+    );
 
     return time;
 }

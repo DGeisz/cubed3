@@ -25,6 +25,8 @@ import { useRouter } from "next/router";
 import { DotLoader } from "react-spinners";
 import { AiFillTwitterCircle } from "react-icons/ai";
 import Link from "next/link";
+import { toast } from "react-toastify";
+import { StudioStyles } from "../lib/studio/studio_styles";
 
 const DEV = false;
 
@@ -88,6 +90,15 @@ const Landing: NextPage = () => {
     }, [provider, program]);
 
     async function init() {
+        toast.promise(
+            new Promise((resolve, reject) => setTimeout(reject, 3000)),
+            {
+                pending: "Loading...",
+                success: "Yeet!",
+                error: "Yikes!",
+            }
+        );
+
         if (DEV) {
             await initializeCubed(provider, program);
             const canvases = await program.account.cubedCanvas.all();
