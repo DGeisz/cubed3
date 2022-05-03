@@ -401,8 +401,8 @@ const Landing: NextPage = () => {
                             <div className={LandingStyles.SubHeader}>
                                 Mosaic Studio
                             </div>
-                            We're built you all the tools you need to design,
-                            create, and tweak our own Rubiks Cube Mosaics
+                            We've built you all the tools you need to design,
+                            create, and tweak your own Rubiks Cube Mosaics
                             (kindly take a peak at our{" "}
                             <Link href="/demo">
                                 <a className="text-sky-400">demo</a>

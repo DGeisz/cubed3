@@ -6,11 +6,10 @@ import { Wallet } from "@project-serum/anchor/dist/cjs/provider";
 import idl from "../../global_idl/idl.json";
 import { Cubed } from "../../global_types/cubed";
 import { useCanvasWallet } from "../studio/service_providers/studio_state_provider/studio_state_provider";
-import { join } from "path";
 
-// const programID = new PublicKey(idl.metadata.address);
+const programID = new PublicKey(idl.metadata.address);
 // const programID = new PublicKey("EiawDaRsHXKZEt3rJHRbpwPZeNhzxZTv37RxPZgjkUSJ");
-const programID = new PublicKey("5pDJMtbFrSnctiWQi57WtFgbpsuPbQKFkBMUyDMaVpef");
+// const programID = new PublicKey("5pDJMtbFrSnctiWQi57WtFgbpsuPbQKFkBMUyDMaVpef");
 
 interface ContextType {
     provider: Provider;

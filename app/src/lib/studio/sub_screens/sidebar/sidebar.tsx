@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import clsx from "clsx";
 import { StudioStyles } from "../../studio_styles";
 import { AiFillHome, AiOutlineTwitter } from "react-icons/ai";

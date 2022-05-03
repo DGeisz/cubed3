@@ -2,17 +2,10 @@ import React, { useLayoutEffect, useRef, useState } from "react";
 import clsx from "clsx";
 import { LandingStyles } from "../../lib/landing_styles";
 import Link from "next/link";
-import { isOnMobile } from "../../global_utils/screen";
 import { IoMdMenu } from "react-icons/io";
 import Image from "next/image";
-import {
-    WalletDisconnectButton,
-    WalletMultiButton,
-} from "@solana/wallet-adapter-react-ui";
+import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import useEventListener from "@use-it/event-listener";
-// import { WalletButton } from "../wallet_button/wallet_button";
-
-const logoSize = 60;
 
 const TopBar: React.FC = () => {
     const [menuVisible, showMenu] = useState<boolean>(false);
